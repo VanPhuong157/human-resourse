@@ -1,0 +1,45 @@
+.tableCell {
+  padding: 0px !important;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+  border-right: 1px solid rgba(224, 224, 224, 1);
+}
+.tableCellHeader {
+  height: 25px;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+.tableCellLast {
+  border-right: none !important;
+}
+.tableContent {
+  margin-left: 10px;
+}
+.tableContentFromSecondColumn {
+  text-align: center;
+}
+.collapseCell {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+.progressBarBox {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+.titleBox {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.objectiveCell {
+  background-color: #e3f2fd;
+}
+.keyResultCell {
+  background-color: #ffebee;
+}
+.teamCell {
+  background-color: #e8f5e9;
+}
+.individualCell {
+  background-color: #fff3e0;
+}

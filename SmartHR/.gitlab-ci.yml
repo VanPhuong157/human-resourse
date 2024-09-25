@@ -1,0 +1,61 @@
+stages:
+  # - test
+  - build
+  - deploy
+
+# build:
+#     image: node:18.12.1
+#     stage: test
+#     before_script:      
+#         - npm install
+#     script:
+#       - echo "Test Application"
+#       - npm run test:ci
+#       - echo "Test Finish"
+#     coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+#     artifacts:
+#       paths:
+#         - coverage/
+#       when: always
+#       reports:
+#         junit:
+#           - junit.xml
+
+
+build_docker:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+  script:
+    - docker build -t $DOCKERHUB_REPOSITORY .
+    - docker tag $DOCKERHUB_REPOSITORY:latest $DOCKERHUB_REPOSITORY:latest
+    - docker push $DOCKERHUB_REPOSITORY:latest
+
+deploy_production:
+    stage: deploy
+    image: docker:latest
+    before_script:
+      - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )' 
+      - eval $(ssh-agent -s)
+      - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+      - mkdir -p ~/.ssh
+      - chmod 700 ~/.ssh
+      - ssh-keyscan $VM_IPADDRESS >> ~/.ssh/known_hosts
+      - chmod 644 ~/.ssh/known_hosts
+      - echo "Kiểm tra kết nối SSH"
+      - ssh -o StrictHostKeyChecking=no $SSH_USER@$VM_IPADDRESS "echo Kết nối SSH thành công"
+      - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+    script:
+      - echo "Deploying to server"
+      - ssh $SSH_USER@$VM_IPADDRESS "
+          sudo mkdir -p ~/.docker;
+          echo '{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(echo -n $DOCKERHUB_USERNAME:$DOCKERHUB_PASSWORD | base64)\"}}}' | sudo tee ~/.docker/config.json;
+          sudo docker pull $DOCKERHUB_REPOSITORY:latest;
+          sudo docker container rm -f my-app || true;
+          sudo docker run -d -p 80:80 --name my-app $DOCKERHUB_REPOSITORY:latest;"
+      - echo "Deployed"
+    only:
+      - master

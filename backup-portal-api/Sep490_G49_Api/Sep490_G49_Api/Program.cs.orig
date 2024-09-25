@@ -1,0 +1,146 @@
+using BusinessObjects.Models;
+<<<<<<< HEAD
+using DataAccess.Departments;
+=======
+using DataAccess.Candidates;
+using DataAccess.Files;
+>>>>>>> origin/master
+using DataAccess.JobPosts;
+using DataAccess.Okrs;
+using DataAccess.Roles;
+using DataAccess.UserHistories;
+using DataAccess.UserInformations;
+using DataAccess.Users;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+<<<<<<< HEAD
+using Repository.Departments;
+=======
+using Repository.Applicants;
+using Repository.Candidates;
+using Repository.Files;
+>>>>>>> origin/master
+using Repository.JobPosts;
+using Repository.Okrs;
+using Repository.Roles;
+using Repository.UserHistories;
+using Repository.UserInformations;
+using Repository.Users;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+});
+
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IOkrRepository, OkrRepository>();
+builder.Services.AddTransient<IJobPostRepository, JobPostRepository>();
+<<<<<<< HEAD
+builder.Services.AddTransient<IUserInformationRepository, UserInformationRepository>();
+builder.Services.AddTransient<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddTransient<IRoleRepository, RoleRepository>();
+builder.Services.AddTransient<IUserHistoryRepository, UserHistoryRepository>();
+
+=======
+builder.Services.AddTransient<IApplicantRepository, ApplicantRepository>();
+builder.Services.AddTransient<ICandidateRepository, CandidateRepository>();
+>>>>>>> origin/master
+builder.Services.AddTransient<UserDAO, UserDAO>();
+builder.Services.AddTransient<OkrDAO, OkrDAO>();
+builder.Services.AddTransient<JobPostDAO, JobPostDAO>();
+<<<<<<< HEAD
+builder.Services.AddTransient<UserInformationDAO, UserInformationDAO>();
+builder.Services.AddTransient<DepartmentDAO, DepartmentDAO>();
+builder.Services.AddTransient<RoleDAO, RoleDAO>();
+builder.Services.AddTransient<UserHistoryDAO, UserHistoryDAO>();
+=======
+builder.Services.AddTransient<ApplicantDAO, ApplicantDAO>();
+builder.Services.AddTransient<CandidateDAO, CandidateDAO>();
+>>>>>>> origin/master
+
+builder.Services.AddDbContext<SEP490_G49Context>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SEP490_G49"));
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero,
+        ValidAudience = builder.Configuration["JWT:ValidAudience"],
+        ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
+    };
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRouting();
+app.UseCors();
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//           Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
+//    RequestPath = "/Resources"
+//});
+app.MapControllers();
+
+app.Run();

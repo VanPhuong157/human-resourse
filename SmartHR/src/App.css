@@ -1,0 +1,29 @@
+.App {
+  text-align: center;
+  display: flex;
+  overflow-y: auto;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.main {
+  width: 100%;
+  background-color: white;
+  min-height: 100vh;
+}
+
+.router {
+  margin: 5px 10px 5px 10px
+}

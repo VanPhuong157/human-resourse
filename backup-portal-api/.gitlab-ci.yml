@@ -1,0 +1,67 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  SSH_USER: sep490g49
+  VM_IPADDRESS: 104.214.184.146
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_TLS_CERTDIR: ""
+
+image: mcr.microsoft.com/dotnet/sdk:6.0
+
+services:
+  - docker:20.10.24-dind
+
+build:
+  stage: build
+  only:
+    - master
+  before_script:
+    - apt-get update && apt-get install -y openssh-client
+    - curl -sSL https://get.docker.com/ | sh
+    - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    - chmod +x /usr/local/bin/docker-compose
+    - docker info
+  script:
+    - cd Sep490_G49_Api/Sep490_G49_Api
+    - echo "Building the project"
+    - dotnet restore
+    - dotnet build --no-restore -c Release
+    - dotnet publish -c Release -o out
+    - cd ../..
+    - docker build -t $DOCKERHUB_REPOSITORY:latest .
+    - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+    - docker tag $DOCKERHUB_REPOSITORY:latest $DOCKERHUB_REPOSITORY:$CI_COMMIT_REF_NAME
+    - docker push $DOCKERHUB_REPOSITORY:$CI_COMMIT_REF_NAME
+
+deploy:
+  stage: deploy
+  only:
+    - master
+  image: alpine:latest
+  before_script:
+    - apk update && apk add --no-cache openssh-client
+  script:
+    - echo "Deploying to server"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $VM_IPADDRESS >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - ssh $SSH_USER@$VM_IPADDRESS "sudo mkdir -p /var/www/mywebapp && sudo chown $SSH_USER:$SSH_USER /var/www/mywebapp"
+    - scp docker-compose.yml $SSH_USER@$VM_IPADDRESS:/var/www/mywebapp/
+    - scp Dockerfile $SSH_USER@$VM_IPADDRESS:/var/www/mywebapp/
+    - scp -r nginx $SSH_USER@$VM_IPADDRESS:/var/www/mywebapp/
+    - scp -r Sep490_G49_Api $SSH_USER@$VM_IPADDRESS:/var/www/mywebapp/
+    - ssh $SSH_USER@$VM_IPADDRESS "
+      sudo apt-get update &&
+      sudo apt-get install -y curl &&
+      sudo curl -L 'https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)' -o /usr/local/bin/docker-compose &&
+      sudo chmod +x /usr/local/bin/docker-compose &&
+      cd /var/www/mywebapp &&
+      docker-compose down &&
+      docker-compose pull sep490g49_api &&
+      docker-compose up -d --build"
+

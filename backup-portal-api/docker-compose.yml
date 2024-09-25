@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  sep490g49_api:
+    image: doduymanh/sep490g49_api:master
+    ports:
+      - "80:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - /home/sep490g49/mywebapp/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /home/sep490g49/mywebapp/Uploads:/app/Uploads
