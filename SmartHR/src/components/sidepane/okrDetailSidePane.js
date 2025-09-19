@@ -10,14 +10,21 @@ const OkrDetailSidePane = ({ open, onClose, data }) => {
       onClose={onClose}
       keepMounted
       PaperProps={{
-        sx: { width: { xs: '100%', md: 720 }, borderRadius: '12px 0 0 12px' }
+        sx: {
+          width: { xs: '100%', md: 720 },
+          borderRadius: { xs: 0, md: '12px 0 0 12px' },
+          height: '100dvh',
+          maxHeight: '100dvh',
+          display: 'flex',
+          flexDirection: 'column'
+        }
       }}
     >
-      <Box sx={{ height: '100%', overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, overflowY: 'auto' }}>
         <OkrDetail data={data} />
       </Box>
     </Drawer>
-    
+
   )
 }
 
