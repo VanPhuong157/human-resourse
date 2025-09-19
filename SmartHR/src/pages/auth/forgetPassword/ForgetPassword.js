@@ -57,7 +57,23 @@ const ForgetPassword = (props) => {
         showSuccess(response.data.message)
       }
     } catch (err) {
-      showError(err.data.message)
+      const responseData = err?.response?.data
+      let message = ''
+
+      if (responseData) {
+        if (typeof responseData === 'string') {
+          message = responseData
+        } else if (typeof responseData?.message === 'string') {
+          message = responseData.message
+        }
+      }
+
+      if (!message) {
+        message = err?.message || 'An unexpected error occurred.'
+        console.error('Unexpected error shape in ForgetPassword:', err)
+      }
+
+      showError(message)
     } finally {
       setIsLoading(false) // Kết thúc tải sau khi hoàn thành API call
     }
