@@ -25,5 +25,7 @@ html, body, #root { height: 100%; }
   flex: 1;
   min-height: 0;          /* QUAN TRỌNG */
   overflow: hidden;       /* ag-grid & sidepane tự scroll */
-  margin: 5px 10px;
+  margin: 0;
+  padding: 5px 10px;
+  box-sizing: border-box; /* giữ khoảng cách nhưng vẫn full-height */
 }

@@ -590,7 +590,12 @@ const OkrTab = forwardRef(
     return (
       <Paper
         elevation={0}
-        sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
+        sx={{
+          height: '100%',
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         <Box
           sx={{
