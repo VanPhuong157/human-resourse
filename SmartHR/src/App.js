@@ -1,6 +1,5 @@
 import React, {useContext, useEffect} from 'react'
 import {useLocation} from 'react-router-dom'
-import Header from './components/header/Header'
 import SideBar from './components/sideBar/SideBar'
 import Routers from './router/Routers'
 import {ReactNotifications} from 'react-notifications-component'
@@ -46,7 +45,6 @@ function App() {
         <div className="App">
           {show && <SideBar />}
           <main className="main">
-            {show && <Header />}
             <div className="router">
               <Routers />
             </div>

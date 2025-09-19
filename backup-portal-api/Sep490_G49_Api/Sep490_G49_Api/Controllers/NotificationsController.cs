@@ -1,7 +1,4 @@
 ﻿using BusinessObjects.DTO.Notification;
-using BusinessObjects.Models;
-using DataAccess.NotificationsDAO;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Notifications;
 

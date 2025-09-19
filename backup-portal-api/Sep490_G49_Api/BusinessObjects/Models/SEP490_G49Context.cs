@@ -13,25 +13,22 @@ namespace BusinessObjects.Models
         public SEP490_G49Context(DbContextOptions<SEP490_G49Context> options) : base(options) { }
         public DbSet<User> Users { get; set; }
         public DbSet<UserInformation> UserInformations { get; set; }
-        public DbSet<JobPost> JobPosts { get; set; }
         public DbSet<UserFile> UserFiles { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<UserHistory> UserHistories { get; set; }
         public DbSet<Family> Families { get; set; }
-        public DbSet<Candidate> Candidates { get; set; }
         public DbSet<OKR> OKRs { get; set; }
         public DbSet<OkrHistory> okrHistories { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<HomePage> HomePages { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
-        public DbSet<HomePageReason> HomePageReasons { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
         public DbSet<UserGroup_Role> UserGroup_Roles { get; set; }
         public DbSet<UserGroup_User> UserGroup_Users { get; set; }
-
+        public DbSet<OkrUser> OkrUsers { get; set; }
+        public DbSet<OkrDepartment> OkrDepartments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -45,6 +42,30 @@ namespace BusinessObjects.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+
+            modelBuilder.Entity<OkrUser>().ToTable("OkrUsers");
+            modelBuilder.Entity<OkrUser>().HasKey(ou => new { ou.OkrId, ou.UserId });
+            modelBuilder.Entity<OkrUser>()
+                .HasOne(ou => ou.Okr)
+                .WithMany(o => o.OkrUsers)
+                .HasForeignKey(ou => ou.OkrId);
+            modelBuilder.Entity<OkrUser>()
+                .HasOne(ou => ou.User)
+                .WithMany(u => u.OkrUsers)
+                .HasForeignKey(ou => ou.UserId);
+
+            modelBuilder.Entity<OkrDepartment>().ToTable("OkrDepartments");
+            modelBuilder.Entity<OkrDepartment>().HasKey(od => new { od.OkrId, od.DepartmentId });
+            modelBuilder.Entity<OkrDepartment>()
+                .HasOne(od => od.Okr)
+                .WithMany(o => o.OkrDepartments)
+                .HasForeignKey(od => od.OkrId);
+            modelBuilder.Entity<OkrDepartment>()
+                .HasOne(od => od.Department)
+                .WithMany(d => d.OkrDepartments)
+                .HasForeignKey(od => od.DepartmentId);
+
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<User>()
                 .HasOne(e => e.UserInformation)
@@ -88,11 +109,6 @@ namespace BusinessObjects.Models
                 .WithMany(d => d.Users)
                 .HasForeignKey(u => u.DepartmentId);
 
-            // Thiết lập quan hệ giữa JobPost và Department
-            modelBuilder.Entity<JobPost>()
-                .HasOne(jp => jp.Department)
-                .WithMany(d => d.Posts)
-                .HasForeignKey(jp => jp.DepartmentId);
 
             // Thiết lập quan hệ giữa User và UserHistory
             modelBuilder.Entity<UserHistory>()
@@ -111,10 +127,6 @@ namespace BusinessObjects.Models
             .WithOne(f => f.UserInformation)
             .HasForeignKey(f => f.UserId);
 
-            modelBuilder.Entity<JobPost>()
-                .HasMany(j => j.Candidates)
-                .WithOne(c => c.JobPost)
-                .HasForeignKey(c => c.JobPostId);
 
             modelBuilder.Entity<UserPermission>()
                 .HasOne(up => up.User)
@@ -161,6 +173,8 @@ namespace BusinessObjects.Models
                 new Permission { Id = Guid.Parse("380c2e30-9242-4401-879f-3756ad0156ef"), Name = "Employee:UpdatePosition" }
 
             };
+
+      
 
             modelBuilder.Entity<Permission>().HasData(permissions);
             modelBuilder.Entity<RolePermission>()

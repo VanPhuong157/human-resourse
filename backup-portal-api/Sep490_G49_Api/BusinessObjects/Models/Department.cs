@@ -10,8 +10,7 @@
         public Guid CreatedBy { get; set; }
         public Guid UpdatedBy { get; set; }
         public ICollection<User> Users { get; set; } = new List<User>();
-        public List<JobPost>? Posts { get; set; }
         public ICollection<OKR> OKRs { get; set; } = new List<OKR>();
-
+        public ICollection<OkrDepartment> OkrDepartments { get; set; }
     }
 }

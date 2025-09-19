@@ -1,42 +1,23 @@
 using BusinessObjects.Models;
-using DataAccess.Departments;
-using DataAccess.Candidates;
-using DataAccess.JobPosts;
-using DataAccess.Okrs;
-using DataAccess.Roles;
-using DataAccess.UserHistories;
-using DataAccess.UserInformations;
-using DataAccess.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Repository.Departments;
-using Repository.Candidates;
-using Repository.JobPosts;
 using Repository.Roles;
 using Repository.UserHistories;
 using Repository.UserInformations;
 using Repository.Users;
 using System.Text;
 using Repository.Objectives;
-using DataAccess.OkrHistories;
 using Repository.OkrHistories;
 using DataAccess.Emails;
-using DataAccess.NotificationsDAO;
 using Repository.Notifications;
 using Repository.Statistic;
-using Repository.HomePages;
-using DataAccess.HomePages;
 using Repository.Permissions;
-using DataAccess.Permissions;
-using DataAccess.HomePageReasons;
-using Repository.HomePageReasons;
 using Repository.UserGroups;
-using DataAccess.UserGroups;
 using Microsoft.Extensions.FileProviders;
 using Hangfire;
-using BusinessObjects.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,35 +85,18 @@ else
     ));
 }
 builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<IJobPostRepository, JobPostRepository>();
 builder.Services.AddTransient<IUserInformationRepository, UserInformationRepository>();
 builder.Services.AddTransient<IDepartmentRepository, DepartmentRepository>();
-builder.Services.AddTransient<ICandidateRepository, CandidateRepository>();
 builder.Services.AddTransient<IRoleRepository, RoleRepository>();
 builder.Services.AddTransient<IUserHistoryRepository, UserHistoryRepository>();
 builder.Services.AddTransient<IOkrRepository, OkrRepository>();
 builder.Services.AddTransient<IOkrHistoryRepository, OkrHistoryRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 builder.Services.AddTransient<IStatisticRepository, StatisticRepository>();
-builder.Services.AddTransient<IHomePageRepository, HomePageRepository>();
 builder.Services.AddTransient<IPermissionRepository, PermissionRepository>();
-builder.Services.AddTransient<IHomePageReasonRepository, HomePageReasonRepository>();
 builder.Services.AddTransient<IUserGroupRepository, UserGroupRepository>();
-builder.Services.AddTransient<UserDAO, UserDAO>();
-builder.Services.AddTransient<OkrDAO, OkrDAO>();
-builder.Services.AddTransient<OkrHistoryDAO, OkrHistoryDAO>();
-builder.Services.AddTransient<JobPostDAO, JobPostDAO>();
-builder.Services.AddTransient<UserInformationDAO, UserInformationDAO>();
-builder.Services.AddTransient<DepartmentDAO, DepartmentDAO>();
-builder.Services.AddTransient<RoleDAO, RoleDAO>();
-builder.Services.AddTransient<CandidateDAO, CandidateDAO>();
 builder.Services.AddTransient<EmailDAO, EmailDAO>();
-builder.Services.AddTransient<UserHistoryDAO, UserHistoryDAO>();
-builder.Services.AddTransient<NotificationDAO, NotificationDAO>();
-builder.Services.AddTransient<HomePageDAO, HomePageDAO>();
-builder.Services.AddTransient<PermissionDAO, PermissionDAO>();
-builder.Services.AddTransient<HomePageReasonDAO, HomePageReasonDAO>();
-builder.Services.AddTransient<UserGroupDAO, UserGroupDAO>();
+
 
 
 builder.Services.AddDbContext<SEP490_G49Context>(options =>

@@ -64,19 +64,19 @@ public class OkrsController : ControllerBase
         return await okrRepository.UpdateOkrRequest(okrId, okrEditDTO);
     }
 
-    [HttpGet("requests")]
-    public async Task<PaginatedList<OKRRequestDTO>> GetOkrsRequests(
-    int pageIndex = 1,
-    int pageSize = 10,
-    string? title = null,
-    string? type = null,
-    string? scope = null,
-    string? approveStatus = null,
-    string? cycle = null,
-    Guid? departmentId = null)
-    {
-        return await okrRepository.GetOkrsRequests(pageIndex, pageSize, title, type, scope, approveStatus,cycle, departmentId);
-    }
+    //[HttpGet("requests")]
+    //public async Task<PaginatedList<OKRRequestDTO>> GetOkrsRequests(
+    //int pageIndex = 1,
+    //int pageSize = 10,
+    //string? title = null,
+    //string? type = null,
+    //string? scope = null,
+    //string? approveStatus = null,
+    //string? cycle = null,
+    //Guid? departmentId = null)
+    //{
+    //    return await okrRepository.GetOkrsRequests(pageIndex, pageSize, title, type, scope, approveStatus,cycle, departmentId);
+    //}
     [HttpPut("{id}/approveStatus")]
     public async Task<IActionResult> UpdateApproveStatus(Guid id, [FromBody] ApproveStatusUpdateDTO dto)
     {

@@ -4,6 +4,7 @@ using BusinessObjects.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObjects.Migrations
 {
     [DbContext(typeof(SEP490_G49Context))]
-    partial class SEP490_G49ContextModelSnapshot : ModelSnapshot
+    [Migration("20250911022512_UpdateNewDatabase")]
+    partial class UpdateNewDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,7 +56,7 @@ namespace BusinessObjects.Migrations
                         new
                         {
                             Id = new Guid("7bf10d6a-c521-44be-804e-8f70e6ae26d1"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(7031),
+                            CreatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9926),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Admin",
                             Name = "Admin",
@@ -141,9 +143,6 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("ApproveStatus")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Company")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ConfidenceLevel")
                         .HasColumnType("nvarchar(max)");
 
@@ -156,26 +155,17 @@ namespace BusinessObjects.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("DepartmentId")
+                    b.Property<Guid>("DepartmentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("DepartmentName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("Owner")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Priority")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Progress")
                         .HasColumnType("int");
@@ -192,7 +182,7 @@ namespace BusinessObjects.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TargetNumber")
+                    b.Property<int>("TargerNumber")
                         .HasColumnType("int");
 
                     b.Property<int>("TargetProgress")
@@ -213,21 +203,6 @@ namespace BusinessObjects.Migrations
                     b.HasIndex("DepartmentId");
 
                     b.ToTable("OKRs");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Models.OkrDepartment", b =>
-                {
-                    b.Property<Guid>("OkrId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("DepartmentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("OkrId", "DepartmentId");
-
-                    b.HasIndex("DepartmentId");
-
-                    b.ToTable("OkrDepartments", (string)null);
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.OkrHistory", b =>
@@ -277,21 +252,6 @@ namespace BusinessObjects.Migrations
                     b.HasIndex("OkrId");
 
                     b.ToTable("okrHistories");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Models.OkrUser", b =>
-                {
-                    b.Property<Guid>("OkrId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("OkrId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("OkrUsers", (string)null);
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Permission", b =>
@@ -506,56 +466,56 @@ namespace BusinessObjects.Migrations
                         new
                         {
                             Id = new Guid("9b80c7d9-7417-4a2c-9f93-919f18a89dd7"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6237),
+                            CreatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9172),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Administrator role with all permissions.",
                             Name = "Admin",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6239),
+                            UpdatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9174),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("4f2dbb46-273e-4aff-b0ae-4a5fa528aaa5"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6242),
+                            CreatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9176),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Human Resources.",
                             Name = "HR",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6242),
+                            UpdatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9176),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("5659d538-3a19-4c5a-aec8-2c024cba0f05"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6244),
+                            CreatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9178),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Employees.",
                             Name = "Employee",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6244),
+                            UpdatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9178),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("7d4e0498-36dd-478c-ab11-b28c25e9da0f"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6245),
+                            CreatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9179),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Board of Directors",
                             Name = "BOD",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6246),
+                            UpdatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9180),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("bc2e856e-0abd-4ca1-9c5f-7f4ea3faa14d"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6247),
+                            CreatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9201),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Manager Of Department",
                             Name = "Manager",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6247),
+                            UpdatedAt = new DateTime(2025, 9, 11, 2, 25, 11, 764, DateTimeKind.Utc).AddTicks(9201),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         });
                 });
@@ -1387,12 +1347,12 @@ namespace BusinessObjects.Migrations
                         {
                             Id = new Guid("62240fc0-2a2a-4b45-9ba5-6a57667413c2"),
                             AccessTokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2025, 9, 16, 16, 53, 23, 318, DateTimeKind.Local).AddTicks(6953),
+                            CreatedAt = new DateTime(2025, 9, 11, 9, 25, 11, 764, DateTimeKind.Local).AddTicks(9877),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             DepartmentId = new Guid("7bf10d6a-c521-44be-804e-8f70e6ae26d1"),
                             IsDeleted = false,
-                            PasswordHash = new byte[] { 34, 238, 137, 67, 3, 225, 219, 241, 18, 105, 147, 200, 42, 114, 207, 72, 23, 199, 219, 247, 183, 164, 5, 232, 233, 81, 20, 94, 127, 236, 65, 145, 247, 184, 64, 192, 214, 94, 156, 187, 112, 253, 214, 155, 134, 217, 239, 200, 105, 128, 107, 122, 222, 141, 124, 88, 175, 22, 227, 118, 35, 82, 3, 168 },
-                            PasswordSalt = new byte[] { 59, 134, 150, 119, 118, 27, 232, 187, 95, 11, 227, 79, 210, 218, 78, 160, 100, 43, 55, 249, 66, 196, 242, 42, 195, 39, 170, 9, 199, 55, 100, 169, 217, 179, 10, 53, 201, 121, 225, 189, 34, 135, 213, 92, 201, 241, 35, 195, 237, 235, 20, 22, 215, 4, 214, 130, 174, 243, 199, 49, 129, 159, 10, 220, 46, 23, 103, 122, 233, 87, 198, 4, 251, 141, 113, 170, 208, 116, 3, 248, 136, 138, 227, 61, 155, 248, 133, 140, 90, 148, 88, 212, 14, 50, 250, 15, 155, 193, 25, 146, 5, 43, 63, 107, 203, 223, 172, 27, 127, 132, 57, 99, 100, 160, 36, 254, 63, 71, 75, 52, 255, 121, 116, 232, 79, 76, 68, 230 },
+                            PasswordHash = new byte[] { 154, 150, 20, 36, 42, 43, 152, 92, 211, 239, 140, 160, 149, 216, 199, 160, 175, 124, 222, 34, 46, 211, 136, 130, 119, 186, 181, 40, 156, 247, 76, 111, 0, 73, 81, 215, 86, 143, 45, 89, 197, 234, 89, 172, 143, 144, 151, 30, 240, 123, 88, 74, 171, 113, 88, 67, 170, 61, 205, 122, 5, 188, 169, 233 },
+                            PasswordSalt = new byte[] { 87, 150, 154, 83, 20, 152, 26, 2, 70, 98, 39, 240, 173, 151, 240, 202, 28, 170, 228, 6, 190, 174, 231, 118, 6, 175, 112, 235, 9, 164, 202, 25, 56, 57, 224, 224, 121, 91, 89, 195, 168, 221, 248, 173, 198, 202, 167, 150, 205, 36, 205, 49, 183, 39, 111, 217, 168, 251, 214, 8, 149, 1, 196, 9, 26, 135, 111, 137, 114, 216, 19, 247, 80, 196, 240, 3, 70, 158, 153, 97, 162, 203, 212, 160, 243, 249, 15, 219, 195, 233, 74, 187, 157, 50, 21, 99, 212, 232, 80, 217, 97, 176, 179, 164, 61, 46, 57, 150, 3, 24, 158, 223, 245, 35, 129, 77, 9, 93, 210, 118, 249, 174, 74, 236, 254, 233, 231, 99 },
                             RefreshTokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RefreshTokenExpires = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("9b80c7d9-7417-4a2c-9f93-919f18a89dd7"),
@@ -1719,28 +1679,13 @@ namespace BusinessObjects.Migrations
 
             modelBuilder.Entity("BusinessObjects.Models.OKR", b =>
                 {
-                    b.HasOne("BusinessObjects.Models.Department", null)
-                        .WithMany("OKRs")
-                        .HasForeignKey("DepartmentId");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Models.OkrDepartment", b =>
-                {
                     b.HasOne("BusinessObjects.Models.Department", "Department")
-                        .WithMany("OkrDepartments")
+                        .WithMany("OKRs")
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BusinessObjects.Models.OKR", "Okr")
-                        .WithMany("OkrDepartments")
-                        .HasForeignKey("OkrId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Department");
-
-                    b.Navigation("Okr");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.OkrHistory", b =>
@@ -1752,25 +1697,6 @@ namespace BusinessObjects.Migrations
                         .IsRequired();
 
                     b.Navigation("OKR");
-                });
-
-            modelBuilder.Entity("BusinessObjects.Models.OkrUser", b =>
-                {
-                    b.HasOne("BusinessObjects.Models.OKR", "Okr")
-                        .WithMany("OkrUsers")
-                        .HasForeignKey("OkrId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObjects.Models.User", "User")
-                        .WithMany("OkrUsers")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Okr");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.RolePermission", b =>
@@ -1905,18 +1831,12 @@ namespace BusinessObjects.Migrations
                 {
                     b.Navigation("OKRs");
 
-                    b.Navigation("OkrDepartments");
-
                     b.Navigation("Users");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.OKR", b =>
                 {
-                    b.Navigation("OkrDepartments");
-
                     b.Navigation("OkrHistories");
-
-                    b.Navigation("OkrUsers");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Permission", b =>
@@ -1938,8 +1858,6 @@ namespace BusinessObjects.Migrations
             modelBuilder.Entity("BusinessObjects.Models.User", b =>
                 {
                     b.Navigation("Notifications");
-
-                    b.Navigation("OkrUsers");
 
                     b.Navigation("UserGroup_Users");
 

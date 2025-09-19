@@ -1,40 +1,21 @@
 ﻿using BusinessObjects.DTO.Statistic;
-using DataAccess.Candidates;
-using DataAccess.JobPosts;
-using DataAccess.Okrs;
-using DataAccess.Users;
+
+using Repository.Objectives;
+using Repository.Users;
 
 namespace Repository.Statistic
 {
     public class StatisticRepository : IStatisticRepository
     {
-        private CandidateDAO _candidateDAO;
-        private OkrDAO _okrDAO;
-        private UserDAO _userDAO;
-        private JobPostDAO _jobPostDAO;
+        private IOkrRepository _okrDAO;
+        private IUserRepository _userDAO;
 
-        public StatisticRepository(CandidateDAO candidateDao, OkrDAO okrDAO, UserDAO userDAO, JobPostDAO jobPostDAO)
+        public StatisticRepository(IOkrRepository okrDAO, IUserRepository userDAO)
         {
-            _candidateDAO = candidateDao;
             _okrDAO = okrDAO;
             _userDAO = userDAO;
-            _jobPostDAO = jobPostDAO;
-        }
-        public async Task<TotalStatisticDTO> CandidateStatistic(Guid? departmentId)
-        {
-            var total = _candidateDAO.CountCandidatesNotPassedByDepartment(departmentId);
-            var percent = _candidateDAO.CalculatePercentageDifferenceApplyDate(departmentId);
-            return new TotalStatisticDTO
-            {
-                Total = total,
-                Percentage = percent
-            };
         }
 
-        public List<JobPostCandidateCountDTO> GetCandidateCountByJobPost(Guid? departmentId)
-        {
-            return _candidateDAO.GetCandidateCountByJobPost(departmentId);
-        }
 
         public IDictionary<string, int> GetOkrStatisticsByApproveStatus(Guid? departmentId)
         {
@@ -46,16 +27,6 @@ namespace Repository.Statistic
             return _okrDAO.GetOkrStatisticsByStatus(departmentId);
         }
 
-        public async Task<TotalStatisticDTO> JobPostsStatistic(Guid? departmentId)
-        {
-            var total = _jobPostDAO.GetTotalRecruitingJobPostCount(departmentId);
-            var percent = _jobPostDAO.CalculateJobPostGrowthPercentage(departmentId);
-            return new TotalStatisticDTO
-            {
-                Total = total,
-                Percentage = percent
-            };
-        }
 
         public async Task<TotalStatisticDTO> UsersStatistic(Guid? departmentId)
         {

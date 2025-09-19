@@ -2,7 +2,6 @@
 using BusinessObjects.DTO.User;
 using BusinessObjects.Models;
 using BusinessObjects.Response;
-using DataAccess.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Users;

@@ -2,7 +2,6 @@
 using BusinessObjects.Models;
 using BusinessObjects.Response;
 using Microsoft.AspNetCore.Mvc;
-using Repository.Candidates;
 using Repository.UserInformations;
 
 namespace Sep490_G49_Api.Controllers

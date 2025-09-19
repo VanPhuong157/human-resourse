@@ -384,7 +384,7 @@ const CreateOKR = ({onClose}) => {
     formData.append('ParentAlignment', parentAlignment?.parentAligment)
     formData.append('Cycle', cycle)
     formData.append('ConfidenceLevel', confidentLevel)
-    formData.append('ActionPlan', actionPlan)
+    formData.append('ActionPlanFile', actionPlan)
     formData.append('Result', result)
     formData.append('DepartmentId', department)
     formData.append('ParentId', parentAlignment?.id || '')

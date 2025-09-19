@@ -1,34 +1,54 @@
-﻿using BusinessObjects.DTO.Notification;
+﻿using AutoMapper;
+using BusinessObjects.DTO.Notification;
 using BusinessObjects.Models;
 using BusinessObjects.Response;
-using DataAccess.NotificationsDAO;
-using DataAccess.Okrs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Notifications
 {
     public class NotificationRepository : INotificationRepository
     {
-        private readonly NotificationDAO _notificationDAO;
-        public NotificationRepository(NotificationDAO notificationDAO)
+        private readonly SEP490_G49Context _context;
+        private readonly IMapper _mapper;
+
+        public NotificationRepository(SEP490_G49Context context, IMapper mapper)
         {
-            _notificationDAO = notificationDAO;
+            _context = context;
+            _mapper = mapper;
         }
-        public Task<Response> RemoveNotificationOlder()
+        public async Task<Response> RemoveNotificationOlder()
         {
-            return _notificationDAO.RemoveNotificationOlder();
+            DateTime currentDate = DateTime.UtcNow.AddHours(7);
+            DateTime dateThreshold = currentDate.AddDays(-3);
+            List<Notification> notificationsOlder = _context.Notifications
+                .Where(x => x.CreatedAt < dateThreshold)
+                .ToList();
+            _context.Notifications.RemoveRange(notificationsOlder);
+            await _context.SaveChangesAsync();
+
+            return new Response { Code = ResponseCode.Success };
         }
+
         public async Task<IEnumerable<NotificationDTO>> GetNotificationsForUser(Guid userId)
         {
-            return await _notificationDAO.GetNotificationsForUser(userId);
+            var notification = await _context.Notifications
+                .Include(x => x.User)
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+            return _mapper.Map<IEnumerable<NotificationDTO>>(notification);
         }
+
         public async Task MarkAsRead()
         {
-             await _notificationDAO.MarkAllAsRead();
+            var notifications = await _context.Notifications.ToListAsync();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

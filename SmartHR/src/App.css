@@ -1,29 +1,29 @@
+/* BẮT BUỘC: cho toàn bộ cây cao hết */
+html, body, #root { height: 100%; }
+
+/* Khung ngoài */
 .App {
   text-align: center;
   display: flex;
-  overflow-y: auto;
+  height: 100vh;   /* full viewport */
+  min-height: 0;   /* unlock child flex height */
+  overflow: hidden;/* tránh scrollbar bọc ngoài */
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+/* Cột phải chứa router */
 .main {
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;          /* QUAN TRỌNG */
   background-color: white;
-  min-height: 100vh;
 }
 
+/* Vùng render pages (OkrTab) */
 .router {
-  margin: 5px 10px 5px 10px
+  flex: 1;
+  min-height: 0;          /* QUAN TRỌNG */
+  overflow: hidden;       /* ag-grid & sidepane tự scroll */
+  margin: 5px 10px;
 }

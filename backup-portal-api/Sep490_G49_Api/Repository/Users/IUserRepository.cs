@@ -15,5 +15,7 @@ namespace Repository.Users
         Task<Response> ForgotPassword(string email);
         Task<Response> DeleteUser(Guid userId);
         Task<PaginatedList<UserGroup_UserDTO>> GetUsers(int pageIndex = 1, int pageSize = 10);
+        int GetTotalUserCount(Guid? departmentId);
+        double CalculateUserGrowthPercentage(Guid? departmentId);
     }
 }

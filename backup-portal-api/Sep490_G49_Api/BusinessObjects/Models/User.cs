@@ -38,6 +38,7 @@ namespace BusinessObjects.Models
         //[JsonConverter(typeof(DateTimeConverter))]
         public DateTime? TemporaryPasswordExpires { get; set; }
         public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
-        public ICollection<UserGroup_User> UserGroup_Users { get; set; } = new List<UserGroup_User>();  
+        public ICollection<UserGroup_User> UserGroup_Users { get; set; } = new List<UserGroup_User>();
+        public ICollection<OkrUser> OkrUsers { get; set; }
     }
 }

@@ -1,30 +1,91 @@
-import React, {useState, useEffect, useRef, useContext} from 'react'
-import {Grid, Typography, LinearProgress, Box, Button} from '@mui/material'
+// 'use client'
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react'
+import {
+  Box,
+  Typography,
+  LinearProgress,
+  Chip,
+  Stack,
+  Paper,
+  Divider,
+  Button,
+  Avatar,
+  AvatarGroup,
+} from '@mui/material'
+
 import OkrDetailChart from './OkrDetailChart'
 import OkrActivity from './OkrActivity'
 import useGetOkrDetail from '../../../../pages/okr/requests/getOkrDetail'
 import OkrProgress from './OkrProgress'
 import CustomDialog from '../../../../components/customDialog'
-import {UserContext} from '../../../../context/UserContext'
+import { UserContext } from '../../../../context/UserContext'
 import ChangeOwner from './ChangeOwner'
-import {baseUrl} from '../../../../api/rootApi'
+import { baseUrl } from '../../../../api/rootApi'
 import useGetUserPermissions from '../../../../pages/admin/requests/getUserPermissions'
 
-const OkrDetail = ({data}) => {
+/** Màu trạng thái (bao gồm Quá hạn) */
+const STATUS_STYLES = {
+  'Quá hạn': {
+    bg: 'rgba(206, 24, 0, 0.165)',
+    color: 'rgb(109, 53, 49)',
+    label: 'Quá hạn',
+  },
+  Processing: {
+    bg: 'rgba(59,130,246,0.15)',
+    color: 'rgb(29,78,216)',
+    label: 'Đang xử lý',
+  },
+  Completed: {
+    bg: 'rgba(34,197,94,0.15)',
+    color: 'rgb(22,163,74)',
+    label: 'Hoàn thành',
+  },
+  Paused: {
+    bg: 'rgba(148,163,184,0.18)',
+    color: 'rgb(71,85,105)',
+    label: 'Tạm dừng',
+  },
+}
+
+const Section = ({ title, children, dense }) => (
+  <Box mb={dense ? 2 : 4}>
+    <Typography variant="h6" fontWeight={700} gutterBottom>
+      {title}
+    </Typography>
+    {children}
+  </Box>
+)
+
+const KeyValueRow = ({ k, v }) => (
+  <Stack
+    direction="row"
+    justifyContent="space-between"
+    alignItems="center"
+    sx={{ py: 0.75 }}
+  >
+    <Typography variant="body2" sx={{ color: 'text.secondary', mr: 2 }}>
+      {k}
+    </Typography>
+    <Typography variant="body2" sx={{ textAlign: 'right' }}>
+      {v ?? '—'}
+    </Typography>
+  </Stack>
+)
+
+const OkrDetail = ({ data }) => {
+  const okrId = data?.id
+
   const [openProgressDialog, setOpenProgressDialog] = useState(false)
   const [openChangeOwnerDialog, setOpenChangeOwnerDialog] = useState(false)
-
   const [blobUrl, setBlobUrl] = useState('')
 
-  const okrId = data?.id
-  const {user} = useContext(UserContext)
-  const {data: dataOkrDetail, refetch} = useGetOkrDetail({okrId})
+  const { user } = useContext(UserContext)
+  const { data: dataOkrDetail, refetch } = useGetOkrDetail({ okrId })
 
+  /** Quyền đổi Owner */
   const [permissionData, setPermissionData] = useState([])
-  const hasOkrEditOwnerPermission = permissionData.includes('Okr:EditOwner')
-
   const userIdPermission = localStorage.getItem('userId')
-  const {data: permissions} = useGetUserPermissions({
+  const { data: permissions } = useGetUserPermissions({
     userId: userIdPermission,
     pageIndex: 1,
     pageSize: 1000,
@@ -35,36 +96,29 @@ const OkrDetail = ({data}) => {
       setPermissionData(newPerm)
     }
   }, [permissions])
+  const hasOkrEditOwnerPermission = permissionData.includes('Okr:EditOwner')
 
+  /** Refetch lần đầu và khi đóng dialog */
   const okrActivityRefetch = useRef(null)
   useEffect(() => {
     refetch()
   }, [refetch])
 
-  const handleDialogOpen = () => {
-    setOpenProgressDialog(true)
-  }
-
+  const handleDialogOpen = () => setOpenProgressDialog(true)
   const handleDialogClose = () => {
     setOpenProgressDialog(false)
     refetch()
-    if (okrActivityRefetch.current) {
-      okrActivityRefetch.current()
-    }
+    if (okrActivityRefetch.current) okrActivityRefetch.current()
   }
 
-  const handleChangeOwnerDialogOpen = () => {
-    setOpenChangeOwnerDialog(true)
-  }
-
+  const handleChangeOwnerDialogOpen = () => setOpenChangeOwnerDialog(true)
   const handleChangeOwnerDialogClose = () => {
     setOpenChangeOwnerDialog(false)
     refetch()
-    if (okrActivityRefetch.current) {
-      okrActivityRefetch.current()
-    }
+    if (okrActivityRefetch.current) okrActivityRefetch.current()
   }
 
+  /** Tải file action plan -> blob URL để tải xuống */
   useEffect(() => {
     if (dataOkrDetail?.data?.actionPlanDetails) {
       fetch(baseUrl + `${dataOkrDetail.data.actionPlanDetails}`)
@@ -77,215 +131,198 @@ const OkrDetail = ({data}) => {
     }
   }, [dataOkrDetail?.data?.actionPlanDetails])
 
+  const d = dataOkrDetail?.data
+  const statusStyle = useMemo(
+    () => STATUS_STYLES[d?.status] || STATUS_STYLES['Processing'],
+    [d?.status]
+  )
+
   return (
-    <Box width={800}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {dataOkrDetail?.data?.title}
-      </Typography>
-      <Box width={'100%'}>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          mb={2}
-          sx={
-            dataOkrDetail?.data?.type === 'KeyResult' &&
-            user.userId === dataOkrDetail?.data?.ownerId
-              ? {
-                  '&:hover': {
-                    paddingTop: '2px',
-                    paddingBottom: '2px',
-                    backgroundColor: 'rgba(2, 10, 2, 0.1)', // Adjust color as needed
-                    cursor:
-                      dataOkrDetail?.data?.type === 'KeyResult'
-                        ? 'pointer'
-                        : 'default',
-                  },
-                }
-              : {} // No hover effect if the user is not the owner
-          }
-        >
-          <Box>
-            <LinearProgress
-              variant="determinate"
-              value={dataOkrDetail?.data?.progress}
-              style={{
-                height: 10,
-                borderRadius: 5,
-                width: 600,
-                marginRight: 20,
-                padding: '1px',
-              }}
-              onClick={
-                dataOkrDetail?.data?.type === 'KeyResult' &&
-                user.userId === dataOkrDetail?.data?.ownerId
-                  ? handleDialogOpen
-                  : null
-              }
-            />
-            <CustomDialog
-              open={openProgressDialog}
-              onCancel={handleDialogClose}
-              title="Update Okr Process"
-              viewDialog
-              showCloseButton
-              maxWidth="md"
-              dialogContent={
-                <OkrProgress
-                  data={dataOkrDetail}
-                  onDialogClose={handleDialogClose}
-                />
-              }
-            />
-          </Box>
-          <Typography variant="body2" color="textSecondary">
-            {dataOkrDetail?.data?.status}
-          </Typography>
-        </Box>
-        <OkrDetailChart okrId={data?.id} />
-      </Box>
-      <Grid
-        container
-        width={'100%'}
-        spacing={1}
-        mt={2}
-        ml={10}
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      {/* HEADER sticky của sidepane */}
+      <Box
         sx={{
-          width: 'auto',
-          wordWrap: 'break-word',
+          px: 6,
+          py: 3,
+          borderBottom: '1px solid #F3F4F6',
+          position: 'sticky',
+          top: 0,
+          bgcolor: '#fff',
+          zIndex: 1,
         }}
       >
-        <Grid item xs={5}>
-          <Typography variant="body1">Main Result & Content:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1" sx={{wordWrap: 'break-word'}}>
-            {dataOkrDetail?.data?.content}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Target number:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.targerNumber}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Achieved:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.achieved}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Unit of Target:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.unitOfTarget}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Progressing:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.progress} %
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Parent Alignment:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.parentAlignment ?? 'Empty'}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Type:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">{dataOkrDetail?.data?.type}</Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Cycle:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">{dataOkrDetail?.data?.cycle}</Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Scope:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">{dataOkrDetail?.data?.scope}</Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Confidence Level:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.confidenceLevel}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Action Plan:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          {dataOkrDetail?.data?.actionPlan ? (
-            <a
-              href={blobUrl}
-              download={dataOkrDetail?.data?.actionPlan?.split('/').pop()}
-              style={{
-                color: 'blue',
-                textDecoration: 'underline',
-                cursor: 'pointer',
+        <Typography variant="h3" fontWeight={800} mb={1}>
+          {d?.title}
+        </Typography>
+
+        <Stack direction="row" alignItems="center" spacing={1.2} flexWrap="wrap">
+          <Chip
+            label={statusStyle.label || d?.status}
+            size="small"
+            sx={{
+              bgcolor: statusStyle.bg,
+              color: statusStyle.color,
+              fontWeight: 700,
+            }}
+          />
+          <Chip
+            label={`Progress: ${d?.progress ?? 0}%`}
+            size="small"
+            variant="outlined"
+          />
+          {d?.cycle && <Chip label={`Cycle: ${d.cycle}`} size="small" />}
+          {d?.type && <Chip label={`Type: ${d.type}`} size="small" variant="outlined" />}
+          {d?.scope && <Chip label={`Scope: ${d.scope}`} size="small" variant="outlined" />}
+
+          {/* Owner inline */}
+          <Stack direction="row" alignItems="center" spacing={1} ml={1}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Owner
+            </Typography>
+            <AvatarGroup
+              max={4}
+              sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: 12 } }}
+            >
+              {d?.owner ? (
+                <Avatar>{String(d.owner).charAt(0)}</Avatar>
+              ) : (
+                <Avatar>?</Avatar>
+              )}
+            </AvatarGroup>
+            {hasOkrEditOwnerPermission && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleChangeOwnerDialogOpen}
+                sx={{ ml: 1 }}
+              >
+                Change Owner
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+      </Box>
+
+      {/* BODY scroll */}
+      <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <Box sx={{ px: 6, py: 3, maxWidth: 1000, mx: 'auto' }}>
+          {/* Progress */}
+          <Section title="Tiến độ">
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={2}
+              sx={
+                d?.type === 'KeyResult' && user.userId === d?.ownerId
+                  ? {
+                      '&:hover': {
+                        backgroundColor: 'rgba(2, 10, 2, 0.06)',
+                        cursor: 'pointer',
+                      },
+                      borderRadius: 1,
+                      p: 1,
+                      width: 'fit-content',
+                    }
+                  : {}
+              }
+              onClick={
+                d?.type === 'KeyResult' && user.userId === d?.ownerId
+                  ? handleDialogOpen
+                  : undefined
+              }
+            >
+              <Box sx={{ width: 460 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={d?.progress ?? 0}
+                  sx={{ height: 12, borderRadius: 1.5 }}
+                />
+              </Box>
+              <Typography variant="body2" sx={{ minWidth: 56 }}>
+                {(d?.progress ?? 0) + '%'}
+              </Typography>
+            </Stack>
+
+            <Box mt={2}>
+              <OkrDetailChart okrId={okrId} />
+            </Box>
+          </Section>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Content */}
+          <Section title="Nội dung chính">
+            <Paper variant="outlined" sx={{ p: 2.5 }}>
+              <Typography whiteSpace="pre-wrap">{d?.content || 'Empty'}</Typography>
+            </Paper>
+          </Section>
+
+          {/* Properties */}
+          <Section title="Thông số">
+            <Paper variant="outlined" sx={{ p: 2.5 }}>
+              <KeyValueRow k="Target number" v={d?.targerNumber} />
+              <KeyValueRow k="Achieved" v={d?.achieved} />
+              <KeyValueRow k="Unit of Target" v={d?.unitOfTarget} />
+              <KeyValueRow k="Parent Alignment" v={d?.parentAlignment ?? 'Empty'} />
+              <KeyValueRow k="Confidence Level" v={d?.confidenceLevel} />
+              <KeyValueRow
+                k="Department"
+                v={
+                  Array.isArray(d?.departmentName)
+                    ? d?.departmentName.join(', ')
+                    : d?.departmentName
+                }
+              />
+              <KeyValueRow k="Owner" v={d?.owner} />
+            </Paper>
+          </Section>
+
+          {/* Expect Result */}
+          <Section title="Kết quả kỳ vọng">
+            <Paper variant="outlined" sx={{ p: 2.5 }}>
+              <Typography whiteSpace="pre-wrap">{d?.result || 'Empty'}</Typography>
+            </Paper>
+          </Section>
+
+          {/* Action Plan */}
+          <Section title="Action plan">
+            {d?.actionPlan ? (
+              <Button
+                component="a"
+                href={blobUrl}
+                download={String(d?.actionPlan).split('/').pop()}
+              >
+                {String(d?.actionPlan).split('/').pop()}
+              </Button>
+            ) : (
+              <Typography>Empty</Typography>
+            )}
+          </Section>
+
+          {/* Activity */}
+          <Divider sx={{ my: 4 }} />
+          <Section title="Activity">
+            <OkrActivity
+              okrId={okrId}
+              setRefetch={(refetchFn) => {
+                okrActivityRefetch.current = refetchFn
               }}
-            >
-              {dataOkrDetail?.data?.actionPlan?.split('/').pop()}
-            </a>
-          ) : (
-            <Typography variant="body1">Empty</Typography>
-          )}
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Expect Result:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">{dataOkrDetail?.data?.result}</Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Department:</Typography>
-        </Grid>
-        <Grid item xs={7}>
-          <Typography variant="body1">
-            {dataOkrDetail?.data?.departmentName}
-          </Typography>
-        </Grid>
-        <Grid item xs={5}>
-          <Typography variant="body1">Owner:</Typography>
-        </Grid>
-        <Grid item xs={7} display="flex" alignItems="center">
-          <Typography variant="body1">{dataOkrDetail?.data?.owner}</Typography>
-          {hasOkrEditOwnerPermission && (
-            <Button
-              variant="outlined"
-              size="small"
-              sx={{ml: 2}}
-              onClick={handleChangeOwnerDialogOpen}
-            >
-              Change Owner
-            </Button>
-          )}
-        </Grid>
-      </Grid>
-      <OkrActivity
-        okrId={data?.id}
-        setRefetch={(refetchFn) => {
-          okrActivityRefetch.current = refetchFn
-        }}
+            />
+          </Section>
+        </Box>
+      </Box>
+
+      {/* Dialogs để ngoài khối scroll */}
+      <CustomDialog
+        open={openProgressDialog}
+        onCancel={handleDialogClose}
+        title="Update Okr Process"
+        viewDialog
+        showCloseButton
+        maxWidth="md"
+        dialogContent={<OkrProgress data={dataOkrDetail} onDialogClose={handleDialogClose} />}
       />
+
       <ChangeOwner
         data={dataOkrDetail}
         open={openChangeOwnerDialog}

@@ -1,8 +1,5 @@
 ﻿using BusinessObjects.DTO;
-using BusinessObjects.DTO.Candidate;
 using BusinessObjects.DTO.Department;
-using BusinessObjects.DTO.HomePage;
-using BusinessObjects.DTO.JobPost;
 using BusinessObjects.DTO.Notification;
 using BusinessObjects.DTO.Permission;
 using BusinessObjects.DTO.Role;
@@ -22,14 +19,9 @@ namespace BusinessObjects.Mapping
             CreateMap<OkrHistory, OkrHistoryDTO>().ReverseMap();
             CreateMap<User, NewUserDTO>().ReverseMap();
             CreateMap<Notification, NotificationDTO>().ReverseMap();
-            CreateMap<JobPost, JobPostDTO>()
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Name));
             CreateMap<UserInformation, UserDetailsWithoutFamilyDTO>()
                 .ForMember(dest => dest.UserFiles, opt => opt.MapFrom(src => src.UserFiles));
             CreateMap<UserFile, UserFileDTO>();
-            CreateMap<Candidate, CandidateDTO>().ReverseMap();
-            CreateMap<Candidate, CandidateResponseDTO>()
-            .ForMember(dest => dest.JobPostTitle, opt => opt.MapFrom(src => src.JobPost.Title));
             CreateMap<Department, DepartmentDTO>().ReverseMap();
             CreateMap<Department, CreateDepartmentDTO>().ReverseMap();
             CreateMap<DepartmentDTO, Department>();
@@ -47,8 +39,6 @@ namespace BusinessObjects.Mapping
             CreateMap<UserInformation, UserDetailsDTO>().ReverseMap();
             CreateMap<EditStatusDTO, UserInformation>().ReverseMap();
             CreateMap<Permission, PermissionResponseDTO>().ReverseMap();
-            CreateMap<HomePage, HomePageLastestDTO>().ReverseMap();
-            CreateMap<HomePage, HomePageDTO>().ReverseMap();
             CreateMap<UserGroup, UserGroupDTO>().ReverseMap();
             CreateMap<UserGroup, UserGroupDTO>()
             .ForMember(dest => dest.Users, opt => opt.MapFrom(src => src.UserGroup_Users.Select(ugu => ugu.User.Username)))

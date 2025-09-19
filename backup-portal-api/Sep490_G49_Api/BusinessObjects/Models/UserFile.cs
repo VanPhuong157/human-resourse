@@ -12,6 +12,7 @@ namespace BusinessObjects.Models
         public string FilePath { get; set; } = string.Empty;
         //[JsonConverter(typeof(DateTimeConverter))]
         public DateTime UploadedAt { get; set; }
+
     }
 
 }
