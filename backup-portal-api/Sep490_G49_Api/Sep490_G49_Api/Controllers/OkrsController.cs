@@ -17,7 +17,7 @@ public class OkrsController : ControllerBase
     }
 
     [HttpGet("{okrId}")]
-    public async Task<OKRDetailsDTO> GetOkrById(Guid okrId)
+    public async Task<OKRDTO> GetOkrById(Guid okrId)
     {
         return await okrRepository.GetOkrById(okrId);
     }
@@ -43,7 +43,7 @@ public class OkrsController : ControllerBase
            string? cycle = null,
            Guid? departmentId = null)
     {
-        return await okrRepository.GetOkrsByDepartmentId(pageIndex, pageSize, title, type, scope, status,cycle, departmentId);
+        return await okrRepository.GetOkrsByDepartmentId(pageIndex, pageSize, title, type, scope, status,cycle);
     }
     [HttpPut("{okrId}/UpdateProgressOkr")]
     public async Task<Response> UpdateProgressOkr(Guid okrId,[FromBody] int achieved)
@@ -52,17 +52,36 @@ public class OkrsController : ControllerBase
     }
 
     [HttpPut("{okrId}/UpdateOwnerOkr")]
-    public async Task<Response> UpdateOwnerOkr(Guid okrId, [FromBody] Guid owner)
+    public async Task<Response> UpdateOwnerOkr(Guid okrId, [FromBody] UpdatePeopleDTO owner)
     {
         return await okrRepository.UpdateOwnerOkr(okrId, owner);
     }
-
-
-    [HttpPut("{okrId}/UpdateOkrRequest")]
-    public async Task<Response> UpdateOkrRequest(Guid okrId, [FromForm] OKREditDTO okrEditDTO)
+    [HttpPut("{okrId}/UpdateOkr")]
+    public async Task<Response> UpdateOkr(Guid okrId, [FromBody] OKRPartialUpdateDTO dto)
     {
-        return await okrRepository.UpdateOkrRequest(okrId, okrEditDTO);
+        return await okrRepository.UpdateOkr(okrId, dto);
     }
+
+
+    [HttpPut("{okrId}/UpdateDepartmentOkr")]
+    public async Task<IActionResult> UpdateDepartmentOkr(Guid okrId, [FromBody] UpdateDepartmentsDTO dto)
+    {
+        try
+        {
+            await okrRepository.UpdateDepartmentOkr(okrId, dto);
+            return Ok(new { message = "Cập nhật phòng ban thành công." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi cập nhật phòng ban.", detail = ex.Message });
+        }
+    }
+
+    //[HttpPut("{okrId}/UpdateOkrRequest")]
+    //public async Task<Response> UpdateOkrRequest(Guid okrId, [FromForm] OKREditDTO okrEditDTO)
+    //{
+    //    return await okrRepository.UpdateOkrRequest(okrId, okrEditDTO);
+    //}
 
     //[HttpGet("requests")]
     //public async Task<PaginatedList<OKRRequestDTO>> GetOkrsRequests(
@@ -77,17 +96,17 @@ public class OkrsController : ControllerBase
     //{
     //    return await okrRepository.GetOkrsRequests(pageIndex, pageSize, title, type, scope, approveStatus,cycle, departmentId);
     //}
-    [HttpPut("{id}/approveStatus")]
-    public async Task<IActionResult> UpdateApproveStatus(Guid id, [FromBody] ApproveStatusUpdateDTO dto)
-    {
-        var response = await okrRepository.UpdateApproveStatus(id, dto);
+    //[HttpPut("{id}/approveStatus")]
+    //public async Task<IActionResult> UpdateApproveStatus(Guid id, [FromBody] ApproveStatusUpdateDTO dto)
+    //{
+    //    var response = await okrRepository.UpdateApproveStatus(id, dto);
 
-        if (response == null)
-        {
-            return NotFound();
-        }
+    //    if (response == null)
+    //    {
+    //        return NotFound();
+    //    }
 
-        return Ok(response);
-    }
+    //    return Ok(response);
+    //}
 }
 

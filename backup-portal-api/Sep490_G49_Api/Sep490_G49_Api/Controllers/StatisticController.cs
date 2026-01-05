@@ -1,34 +1,45 @@
-﻿using BusinessObjects.DTO.Statistic;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Statistic;
 
-namespace Sep490_G49_Api.Controllers
+namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/statistic")]
     [ApiController]
     public class StatisticController : ControllerBase
     {
-        private IStatisticRepository _statistic;
-        public StatisticController(IStatisticRepository statistic)
+        private readonly IStatisticRepository _statisticRepo;
+
+        public StatisticController(IStatisticRepository statisticRepo)
         {
-            _statistic = statistic;
+            _statisticRepo = statisticRepo;
         }
 
-        [HttpGet("users/by-department")]
-        public async Task<TotalStatisticDTO> UsersStatistic(Guid? departmentId)
+        // Dashboard OKR
+        [HttpGet("work-dashboard/okr")]
+        public async Task<IActionResult> GetOkrWorkDashboard(
+        [FromQuery] Guid? departmentId,
+        [FromQuery] Guid? userId,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to)
         {
-            return await _statistic.UsersStatistic(departmentId);
+            var data = await _statisticRepo.GetOkrWorkDashboardAsync(
+                departmentId, userId, from, to);
+            return Ok(data);
         }
 
-        [HttpGet("okr/by-department")]
-        public IDictionary<string, int> GetOkrStatisticsByStatus(Guid? departmentId)
+        // Dashboard PolicyStep (Project Task)
+        [HttpGet("work-dashboard/policystep")]
+        public async Task<IActionResult> GetPolicyStepWorkDashboard(
+            [FromQuery] Guid? departmentId,
+            [FromQuery] Guid? userId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to)
         {
-            return _statistic.GetOkrStatisticsByStatus(departmentId);
-        }
-        [HttpGet("okr-request/by-department")]
-        public IDictionary<string, int> GetOkrStatisticsByApproveStatus(Guid? departmentId)
-        {
-            return _statistic.GetOkrStatisticsByApproveStatus(departmentId);
+            var data = await _statisticRepo.GetPolicyStepWorkDashboardAsync(
+                departmentId, userId, from, to);
+            return Ok(data);
         }
     }
 }

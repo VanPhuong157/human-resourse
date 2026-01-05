@@ -134,16 +134,15 @@ const HeaderOkr = ({
         {hasOkrCreatePermission && (
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
             sx={{
               textTransform: 'none',
-              borderRadius: 999,
-              px: 1.75,
+              borderRadius: 30,
+              px: 1.5,
               py: 0.5,
             }}
             onClick={handleClickAdd}
           >
-            Add Okr
+            New Task
           </Button>
         )}
       </Box>

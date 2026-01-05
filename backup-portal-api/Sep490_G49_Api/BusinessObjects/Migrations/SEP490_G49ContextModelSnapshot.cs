@@ -22,6 +22,46 @@ namespace BusinessObjects.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("BusinessObjects.Models.CommentFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("OkrHistoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StoredPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OkrHistoryId");
+
+                    b.ToTable("CommentFiles", (string)null);
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.Department", b =>
                 {
                     b.Property<Guid>("Id")
@@ -54,7 +94,7 @@ namespace BusinessObjects.Migrations
                         new
                         {
                             Id = new Guid("7bf10d6a-c521-44be-804e-8f70e6ae26d1"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(7031),
+                            CreatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(5696),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Admin",
                             Name = "Admin",
@@ -287,7 +327,10 @@ namespace BusinessObjects.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("OkrId", "UserId");
+                    b.Property<string>("Role")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("OkrId", "UserId", "Role");
 
                     b.HasIndex("UserId");
 
@@ -471,6 +514,141 @@ namespace BusinessObjects.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BusinessObjects.Models.PolicyDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("PolicyStepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UploadedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PolicyStepId");
+
+                    b.ToTable("PolicyDocument");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ApproveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExecDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LawRef")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ReviewDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("PolicySteps");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStepDepartment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PolicyStepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("PolicyStepId");
+
+                    b.ToTable("PolicyStepDepartments");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStepUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsLead")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PolicyStepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PolicyStepId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PolicyStepUsers");
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -506,56 +684,56 @@ namespace BusinessObjects.Migrations
                         new
                         {
                             Id = new Guid("9b80c7d9-7417-4a2c-9f93-919f18a89dd7"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6237),
+                            CreatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4384),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Administrator role with all permissions.",
                             Name = "Admin",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6239),
+                            UpdatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4385),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("4f2dbb46-273e-4aff-b0ae-4a5fa528aaa5"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6242),
+                            CreatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4389),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Human Resources.",
                             Name = "HR",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6242),
+                            UpdatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4390),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("5659d538-3a19-4c5a-aec8-2c024cba0f05"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6244),
+                            CreatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4392),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Employees.",
                             Name = "Employee",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6244),
+                            UpdatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4392),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("7d4e0498-36dd-478c-ab11-b28c25e9da0f"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6245),
+                            CreatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4394),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Board of Directors",
                             Name = "BOD",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6246),
+                            UpdatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4394),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         },
                         new
                         {
                             Id = new Guid("bc2e856e-0abd-4ca1-9c5f-7f4ea3faa14d"),
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6247),
+                            CreatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4396),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             Description = "Manager Of Department",
                             Name = "Manager",
                             Type = "Basic",
-                            UpdatedAt = new DateTime(2025, 9, 16, 9, 53, 23, 318, DateTimeKind.Utc).AddTicks(6247),
+                            UpdatedAt = new DateTime(2025, 12, 25, 7, 24, 32, 554, DateTimeKind.Utc).AddTicks(4396),
                             UpdatedBy = new Guid("00000000-0000-0000-0000-000000000000")
                         });
                 });
@@ -1311,6 +1489,326 @@ namespace BusinessObjects.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BusinessObjects.Models.Schedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ApprovedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedById");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("Schedules", (string)null);
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ScheduleAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StoredPath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.ToTable("ScheduleAttachments", (string)null);
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ScheduleParticipant", b =>
+                {
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ScheduleId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ScheduleParticipants", (string)null);
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.Submission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CurrentReviewerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("NextReviewerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PolicyStepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PolicyStepId");
+
+                    b.ToTable("Submissions");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ByRole")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("ByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ByUserId");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.ToTable("SubmissionComments");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionDepartment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.ToTable("SubmissionDepartments");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ByRole")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TargetUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.ToTable("SubmissionEvents");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSelectedForPublish")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("PublishedDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UploadedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PublishedDocumentId");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.ToTable("SubmissionFiles");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsLead")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SubmissionParticipants");
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1387,12 +1885,12 @@ namespace BusinessObjects.Migrations
                         {
                             Id = new Guid("62240fc0-2a2a-4b45-9ba5-6a57667413c2"),
                             AccessTokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2025, 9, 16, 16, 53, 23, 318, DateTimeKind.Local).AddTicks(6953),
+                            CreatedAt = new DateTime(2025, 12, 25, 14, 24, 32, 554, DateTimeKind.Local).AddTicks(5621),
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             DepartmentId = new Guid("7bf10d6a-c521-44be-804e-8f70e6ae26d1"),
                             IsDeleted = false,
-                            PasswordHash = new byte[] { 34, 238, 137, 67, 3, 225, 219, 241, 18, 105, 147, 200, 42, 114, 207, 72, 23, 199, 219, 247, 183, 164, 5, 232, 233, 81, 20, 94, 127, 236, 65, 145, 247, 184, 64, 192, 214, 94, 156, 187, 112, 253, 214, 155, 134, 217, 239, 200, 105, 128, 107, 122, 222, 141, 124, 88, 175, 22, 227, 118, 35, 82, 3, 168 },
-                            PasswordSalt = new byte[] { 59, 134, 150, 119, 118, 27, 232, 187, 95, 11, 227, 79, 210, 218, 78, 160, 100, 43, 55, 249, 66, 196, 242, 42, 195, 39, 170, 9, 199, 55, 100, 169, 217, 179, 10, 53, 201, 121, 225, 189, 34, 135, 213, 92, 201, 241, 35, 195, 237, 235, 20, 22, 215, 4, 214, 130, 174, 243, 199, 49, 129, 159, 10, 220, 46, 23, 103, 122, 233, 87, 198, 4, 251, 141, 113, 170, 208, 116, 3, 248, 136, 138, 227, 61, 155, 248, 133, 140, 90, 148, 88, 212, 14, 50, 250, 15, 155, 193, 25, 146, 5, 43, 63, 107, 203, 223, 172, 27, 127, 132, 57, 99, 100, 160, 36, 254, 63, 71, 75, 52, 255, 121, 116, 232, 79, 76, 68, 230 },
+                            PasswordHash = new byte[] { 16, 212, 80, 220, 89, 42, 169, 134, 124, 100, 84, 169, 140, 8, 172, 243, 201, 86, 253, 45, 33, 244, 214, 211, 57, 231, 84, 20, 22, 193, 157, 15, 190, 142, 215, 213, 201, 193, 51, 42, 215, 202, 62, 244, 208, 40, 219, 244, 214, 155, 245, 166, 49, 223, 158, 178, 109, 129, 97, 243, 91, 33, 32, 8 },
+                            PasswordSalt = new byte[] { 148, 146, 96, 59, 39, 46, 190, 148, 72, 36, 111, 141, 12, 85, 147, 98, 52, 8, 158, 75, 102, 173, 148, 97, 10, 226, 16, 15, 203, 171, 91, 71, 202, 90, 101, 108, 5, 174, 115, 101, 239, 243, 118, 241, 225, 145, 235, 144, 54, 204, 64, 107, 144, 47, 73, 215, 76, 158, 125, 254, 122, 205, 45, 56, 103, 155, 94, 97, 204, 113, 159, 178, 140, 158, 221, 101, 80, 246, 237, 151, 246, 61, 254, 164, 101, 236, 168, 97, 207, 122, 27, 184, 76, 97, 252, 149, 171, 92, 6, 156, 136, 1, 127, 72, 82, 250, 7, 170, 240, 144, 70, 148, 91, 39, 247, 73, 72, 27, 38, 116, 169, 247, 203, 58, 150, 23, 87, 4 },
                             RefreshTokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RefreshTokenExpires = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             RoleId = new Guid("9b80c7d9-7417-4a2c-9f93-919f18a89dd7"),
@@ -1695,6 +2193,17 @@ namespace BusinessObjects.Migrations
                     b.ToTable("UserPermissions");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Models.CommentFile", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.OkrHistory", "OkrHistory")
+                        .WithMany("Attachments")
+                        .HasForeignKey("OkrHistoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OkrHistory");
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.Family", b =>
                 {
                     b.HasOne("BusinessObjects.Models.UserInformation", "UserInformation")
@@ -1773,6 +2282,64 @@ namespace BusinessObjects.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Models.PolicyDocument", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.PolicyStep", "Step")
+                        .WithMany("Documents")
+                        .HasForeignKey("PolicyStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Step");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStep", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.PolicyStep", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId");
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStepDepartment", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Models.PolicyStep", "PolicyStep")
+                        .WithMany("PolicyStepDepartments")
+                        .HasForeignKey("PolicyStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("PolicyStep");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStepUser", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.PolicyStep", "PolicyStep")
+                        .WithMany("PolicyStepUsers")
+                        .HasForeignKey("PolicyStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PolicyStep");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.RolePermission", b =>
                 {
                     b.HasOne("BusinessObjects.Models.Permission", "Permission")
@@ -1790,6 +2357,148 @@ namespace BusinessObjects.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.Schedule", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.User", "ApprovedBy")
+                        .WithMany()
+                        .HasForeignKey("ApprovedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BusinessObjects.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApprovedBy");
+
+                    b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ScheduleAttachment", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Schedule", "Schedule")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.ScheduleParticipant", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Schedule", "Schedule")
+                        .WithMany("Participants")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.Submission", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.PolicyStep", "PolicyStep")
+                        .WithMany()
+                        .HasForeignKey("PolicyStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PolicyStep");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionComment", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.User", "ByUser")
+                        .WithMany("SubmissionComments")
+                        .HasForeignKey("ByUserId");
+
+                    b.HasOne("BusinessObjects.Models.Submission", "Submission")
+                        .WithMany("Comments")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ByUser");
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionDepartment", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Models.Submission", "Submission")
+                        .WithMany("Departments")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionEvent", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Submission", "Submission")
+                        .WithMany("Events")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionFile", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.PolicyDocument", "PublishedDocument")
+                        .WithMany()
+                        .HasForeignKey("PublishedDocumentId");
+
+                    b.HasOne("BusinessObjects.Models.Submission", "Submission")
+                        .WithMany("Files")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PublishedDocument");
+
+                    b.Navigation("Submission");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.SubmissionParticipant", b =>
+                {
+                    b.HasOne("BusinessObjects.Models.Submission", "Submission")
+                        .WithMany("Participants")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObjects.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Submission");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.User", b =>
@@ -1919,11 +2628,27 @@ namespace BusinessObjects.Migrations
                     b.Navigation("OkrUsers");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Models.OkrHistory", b =>
+                {
+                    b.Navigation("Attachments");
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
 
                     b.Navigation("UserPermissions");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.PolicyStep", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Documents");
+
+                    b.Navigation("PolicyStepDepartments");
+
+                    b.Navigation("PolicyStepUsers");
                 });
 
             modelBuilder.Entity("BusinessObjects.Models.Role", b =>
@@ -1935,11 +2660,33 @@ namespace BusinessObjects.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("BusinessObjects.Models.Schedule", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("BusinessObjects.Models.Submission", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Departments");
+
+                    b.Navigation("Events");
+
+                    b.Navigation("Files");
+
+                    b.Navigation("Participants");
+                });
+
             modelBuilder.Entity("BusinessObjects.Models.User", b =>
                 {
                     b.Navigation("Notifications");
 
                     b.Navigation("OkrUsers");
+
+                    b.Navigation("SubmissionComments");
 
                     b.Navigation("UserGroup_Users");
 

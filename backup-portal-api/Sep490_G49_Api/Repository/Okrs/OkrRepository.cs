@@ -87,8 +87,8 @@ namespace Repository.Objectives
             string? type = null,
             string? scope = null,
             string? status = null,
-            string? cycle = null,
-            Guid? departmentId = null)
+            string? cycle = null
+            )
         {
             var query = _context.OKRs
                 .Include(o => o.OkrUsers)
@@ -115,10 +115,10 @@ namespace Repository.Objectives
 
             // LỌC PHÒNG BAN: chỉ áp dụng khi departmentId hợp lệ,
             // và khi áp dụng thì CHỈ lấy OKR có quan hệ OkrDepartments khớp departmentId
-            if (departmentId.HasValue && departmentId.Value != Guid.Empty)
-            {
-                query = query.Where(j => j.OkrDepartments.Any(od => od.DepartmentId == departmentId.Value));
-            }
+            //if (departmentId.HasValue && departmentId.Value != Guid.Empty)
+            //{
+            //    query = query.Where(j => j.OkrDepartments.Any(od => od.DepartmentId == departmentId.Value));
+            //}
 
             var count = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(count / (double)pageSize);
@@ -127,79 +127,16 @@ namespace Repository.Objectives
                 .OrderByDescending(o => o.DateCreated)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
+                .AsNoTracking()
                 .ToListAsync();
 
-            var okrList = okrs.Select(o =>
-            {
-                // ==== Owner (danh sách)
-                var ownerNames = o.OkrUsers
-                    .Select(ou => ou.User?.UserInformation?.FullName ?? string.Empty)
-                    .Where(n => !string.IsNullOrWhiteSpace(n))
-                    .ToList();
-
-                var ownerIds = o.OkrUsers
-                    .Select(ou => ou.UserId)
-                    .Where(id => id != Guid.Empty)
-                    .ToList();
-
-                // ManagerNames: ví dụ lấy tất cả trừ owner đầu tiên (nếu bạn đang dùng quy ước này)
-                var managerNames = ownerNames.Skip(1).ToList();
-
-                // ==== DepartmentName: chỉ từ quan hệ (không fallback tên phẳng)
-                var deptNames = o.OkrDepartments
-                    .Select(od => od.Department?.Name ?? string.Empty)
-                    .Where(n => !string.IsNullOrWhiteSpace(n))
-                    .ToList();
-
-                return new OKRDTO
-                {
-                    Id = o.Id,
-                    Title = o.Title,
-                    Content = o.Content,
-                    Type = o.Type,
-                    Scope = o.Scope,
-
-                    OwnerNames = ownerNames,   // Danh sách tên owner
-                    OwnerId = ownerIds,        // Danh sách Guid owner
-                    ManagerNames = managerNames,
-
-                    DepartmentName = deptNames,
-
-                    Progress = o.Progress,
-                    TargetProgress = o.TargetProgress,
-                    TargetNumber = o.TargetNumber,
-                    Achieved = o.Achieved,
-                    UnitOfTarget = o.UnitOfTarget,
-                    Status = o.Status,
-                    ApproveStatus = o.ApproveStatus,
-                    Reason = o.Reason,
-                    Cycle = o.Cycle,
-                    ConfidenceLevel = o.ConfidenceLevel,
-
-                    ActionPlan = o.ActionPlan,
-                    ActionPlanDetail = o.ActionPlanDetail,
-                    Result = o.Result,
-
-                    DateCreated = o.DateCreated,
-                    DueDate = o.DueDate,
-                    Priority = o.Priority,
-                    Company = o.Company,
-                    LastUpdated = o.LastUpdated,
-                    Note = o.Note,
-
-                    ParentAlignment = o.ParentId.HasValue
-                        ? _context.OKRs.Where(x => x.Id == o.ParentId).Select(x => x.Title).FirstOrDefault()
-                        : null,
-                    ParentId = o.ParentId
-                };
-            }).ToList();
-
+            var okrList = okrs.Select(MapToOkrDto).ToList();
             return new PaginatedList<OKRDTO>(okrList, pageIndex, totalPages, count);
         }
 
 
 
-        public async Task<OKRDetailsDTO> GetOkrById(Guid id)
+        public async Task<OKRDTO?> GetOkrById(Guid id)
         {
             var okr = await _context.OKRs
                 .Include(x => x.OkrUsers)
@@ -207,187 +144,144 @@ namespace Repository.Objectives
                     .ThenInclude(u => u.UserInformation)
                 .Include(x => x.OkrDepartments)
                     .ThenInclude(od => od.Department)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            var ownerUser = okr.OkrUsers.FirstOrDefault()?.User;
-            var owner = ownerUser != null && ownerUser.UserInformation != null ? ownerUser.UserInformation.FullName : "";
-
-            string parentAlignment = null;
-            if (okr.ParentId.HasValue)
-            {
-                var parentOkr = await _context.OKRs
-                    .Where(p => p.Id == okr.ParentId.Value)
-                    .Select(p => p.Title)
-                    .FirstOrDefaultAsync();
-                parentAlignment = parentOkr;
-            }
-            var okrDetails = new OKRDetailsDTO
-            {
-                Id = okr.Id,
-                Title = okr.Title,
-                Content = okr.Content,
-                Type = okr.Type,
-                Scope = okr.Scope,
-                Owner = owner,
-                Progress = okr.Progress,
-                Achieved = okr.Achieved,
-                TargerNumber = okr.TargetNumber,
-                UnitOfTarget = okr.UnitOfTarget,
-                Status = okr.Status,
-                ApproveStatus = okr.ApproveStatus,
-                Reason = okr.Reason,
-                Cycle = okr.Cycle,
-                ConfidenceLevel = okr.ConfidenceLevel,
-                ActionPlan = okr.ActionPlan,
-                ActionPlanDetails = okr.ActionPlanDetail,
-                Result = okr.Result,
-                DateCreated = okr.DateCreated,
-                ParentAlignment = parentAlignment,
-                DepartmentId = okr.OkrDepartments.FirstOrDefault()?.DepartmentId,
-                DepartmentName = okr.OkrDepartments.FirstOrDefault()?.Department?.Name,
-                ParentId = okr.ParentId,
-                OwnerId = ownerUser?.Id
-            };
-            return okrDetails;
+            if (okr == null) return null;
+            return MapToOkrDto(okr);
         }
 
-        public async Task<Response> CreateOkr(OKRCreateDTO okrDTO)
+
+        public async Task<Response> CreateOkr(OKRCreateDTO dto)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdStr = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userIdStr))
+                return new Response { Code = ResponseCode.InternalServerError, Message = "Unauthenticated." };
+            var currentUserId = Guid.Parse(userIdStr);
 
-            var department = await _context.Departments
-                .Include(x => x.Users)
-                .FirstOrDefaultAsync(x => x.Id == okrDTO.DepartmentId);
+            // ✅ validate DepartmentIds
+            if (dto.DepartmentIds == null || dto.DepartmentIds.Count == 0)
+                return new Response { Code = ResponseCode.BadRequest, Message = "DepartmentIds is required." };
 
-            if (department == null)
-            {
-                return new Response { Code = ResponseCode.NotFound, Message = "Department not found." };
-            }
+            var depts = await _context.Departments
+                .Where(d => dto.DepartmentIds.Contains(d.Id))
+                .ToListAsync();
+            if (depts.Count != dto.DepartmentIds.Distinct().Count())
+                return new Response { Code = ResponseCode.BadRequest, Message = "Some DepartmentIds are invalid." };
 
-            string? uniqueFileName = null;
-            if (okrDTO.ActionPlanFile != null)
-            {
-                var allowedExtensions = new[] { ".pdf" };
-                var fileExtension = Path.GetExtension(okrDTO.ActionPlanFile.FileName).ToLower();
-                if (!allowedExtensions.Contains(fileExtension))
-                {
-                    return new Response { Code = ResponseCode.BadRequest, Message = "Only PDF files are allowed." };
-                }
+            // ✅ tính progress + status
+            int target = dto.TargetNumber ?? 0;
+            int achieved = dto.Achieved ?? 0;
+            int newProgress = target > 0 ? (int)Math.Round((double)achieved / target * 100) : 0;
+            var status = GetStatusBasedOnProgress(newProgress);
 
-                var allowedMimeTypes = new[] { "application/pdf" };
-                if (!allowedMimeTypes.Contains(okrDTO.ActionPlanFile.ContentType))
-                {
-                    return new Response { Code = ResponseCode.BadRequest, Message = "Only PDF files are allowed." };
-                }
-
-                var uploadsFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Uploads", "Okrs", okrDTO.Title ?? Guid.NewGuid().ToString());
-                Directory.CreateDirectory(uploadsFolder);
-
-                uniqueFileName = Guid.NewGuid().ToString() + "_" + okrDTO.ActionPlanFile.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await okrDTO.ActionPlanFile.CopyToAsync(fileStream);
-                }
-            }
-
-            var newProgress = okrDTO.Achieved.HasValue && okrDTO.TargetNumber.HasValue
-                ? (int)Math.Round((double)okrDTO.Achieved.Value / okrDTO.TargetNumber.Value * 100)
-                : 0;
-            var status = okrDTO.Status ?? GetStatusBasedOnProgress(newProgress);
+            // ✅ cycle theo quý hiện tại (giờ VN)
+            var nowLocal = DateTime.UtcNow.AddHours(7);
+            var cycle = ComputeCurrentQuarterCycle(nowLocal);
 
             var newOkr = new OKR
             {
                 Id = Guid.NewGuid(),
-                ParentId = okrDTO.ParentId,
-                Title = okrDTO.Title ?? "Untitled",
-                Content = okrDTO.Content,
-                Type = okrDTO.Type,
-                DepartmentName = department.Name,
-                TargetProgress = okrDTO.TargetProgress ?? 100,
-                UnitOfTarget = okrDTO.UnitOfTarget,
-                TargetNumber = okrDTO.TargetNumber ?? 0,
-                Achieved = okrDTO.Achieved ?? 0,
+                ParentId = dto.ParentId,
+
+                Title = dto.Title ?? "Untitled",
+                Content = dto.Content,
+                Type = dto.Type,
+                Scope = dto.Scope,
+
+                // DepartmentName: để null/không set; list phòng ban sẽ lấy từ OkrDepartments
+                TargetProgress = dto.TargetProgress ?? 100,
+                UnitOfTarget = dto.UnitOfTarget,
+                TargetNumber = target,
+                Achieved = achieved,
                 Progress = newProgress,
-                Status = status,
-                ApproveStatus = okrDTO.ApproveStatus ?? "Pending",
-                Reason = okrDTO.Reason,
-                Cycle = okrDTO.Cycle,
-                ConfidenceLevel = okrDTO.ConfidenceLevel,
-                Result = okrDTO.Result,
-                DateCreated = okrDTO.DateCreated ?? DateTime.UtcNow.AddHours(7),
-                DueDate = okrDTO.DueDate,
-                Priority = okrDTO.Priority,
-                Company = okrDTO.Company,
-                LastUpdated = okrDTO.LastUpdated ?? DateTime.UtcNow.AddHours(7),
-                Note = okrDTO.Note,
-                Scope = okrDTO.Scope,
-                ActionPlanDetail = uniqueFileName != null ? $"/Uploads/Okrs/{(okrDTO.Title ?? Guid.NewGuid().ToString())}/{uniqueFileName}" : null,
-                ActionPlan = okrDTO.ActionPlan
+
+                Status = "To Do",
+                ApproveStatus = dto.ApproveStatus ?? "Approve",
+                Reason = null,
+
+                Cycle = cycle,
+                ConfidenceLevel = dto.ConfidenceLevel,
+                Result = null,
+
+                DateCreated = dto.DateCreated ?? nowLocal,
+                DueDate = dto.DueDate,
+                Company = dto.Company,
+                LastUpdated = dto.LastUpdated ?? nowLocal,
+                Note = dto.Note,
+
+                ActionPlan = null,
+                ActionPlanDetail = null
             };
 
             _context.OKRs.Add(newOkr);
             await _context.SaveChangesAsync();
 
-            var okrDepartment = new OkrDepartment
-            {
-                OkrId = newOkr.Id,
-                DepartmentId = okrDTO.DepartmentId
-            };
-            _context.OkrDepartments.Add(okrDepartment);
+            // ✅ map nhiều phòng ban
+            var okrDepts = dto.DepartmentIds
+                .Distinct()
+                .Select(did => new OkrDepartment { OkrId = newOkr.Id, DepartmentId = did });
+            _context.OkrDepartments.AddRange(okrDepts);
 
-            var defaultOkrUser = new OkrUser
-            {
-                OkrId = newOkr.Id,
-                UserId = Guid.Parse(userId)
-            };
-            _context.OkrUsers.Add(defaultOkrUser);
+            // ✅ OkrUsers (role chuẩn: Creator/Owner/Manager)
+            var okrUsers = new List<OkrUser>
+    {
+        new OkrUser { OkrId = newOkr.Id, UserId = currentUserId, Role = OkrRoles.Creator }
+    };
 
-            if (okrDTO.OwnerIds != null && okrDTO.OwnerIds.Any())
+            if (dto.OwnerIds != null)
             {
-                foreach (var oid in okrDTO.OwnerIds)
-                {
-                    if (oid != Guid.Parse(userId))
-                    {
-                        var additionalOkrUser = new OkrUser
-                        {
-                            OkrId = newOkr.Id,
-                            UserId = oid
-                        };
-                        _context.OkrUsers.Add(additionalOkrUser);
-                    }
-                }
+                okrUsers.AddRange(
+                    dto.OwnerIds
+                       .Where(id => id != currentUserId) // tránh trùng creator
+                       .Distinct()
+                       .Select(id => new OkrUser { OkrId = newOkr.Id, UserId = id, Role = OkrRoles.Owner })
+                );
             }
 
+            if (dto.ManagerIds != null)
+            {
+                okrUsers.AddRange(
+                    dto.ManagerIds
+                       .Where(id => id != currentUserId) // có thể cho phép creator đồng thời là manager nếu bạn muốn
+                       .Distinct()
+                       .Select(id => new OkrUser { OkrId = newOkr.Id, UserId = id, Role = OkrRoles.Manager })
+                );
+            }
+
+            _context.OkrUsers.AddRange(okrUsers);
             await _context.SaveChangesAsync();
 
+            // ✅ lịch sử khởi tạo
             var okrH = new OkrHistory
             {
                 Id = Guid.NewGuid(),
-                UserId = Guid.Parse(userId),
-                DateCreated = DateTime.UtcNow.AddHours(7),
+                UserId = currentUserId,
+                DateCreated = nowLocal,
                 OldProgress = newOkr.Progress,
                 NewProgress = newOkr.Progress,
                 OldAchieved = newOkr.Achieved,
                 NewAchieved = newOkr.Achieved,
-                UnitOfTarget = okrDTO.UnitOfTarget,
+                UnitOfTarget = newOkr.UnitOfTarget,
                 OldStatus = newOkr.Status,
-                NewStatus = status,
+                NewStatus = newOkr.Status,
                 Type = "logging",
                 OkrId = newOkr.Id,
                 Description = ""
             };
-
             _context.okrHistories.Add(okrH);
             await _context.SaveChangesAsync();
 
-            if (okrDTO.ParentId.HasValue)
-            {
-                await UpdateParentOkrProgress(okrDTO.ParentId);
-            }
+            if (dto.ParentId.HasValue)
+                await UpdateParentOkrProgress(dto.ParentId);
 
             return new Response { Code = ResponseCode.Success, Message = "Create successfully!" };
+        }
+
+        private static string ComputeCurrentQuarterCycle(DateTime nowLocal)
+        {
+            int q = ((nowLocal.Month - 1) / 3) + 1;
+            return $"Q{q}/{nowLocal.Year}";
         }
 
         public async Task<Response> UpdateProgressOkr(Guid okrId, int achieved)
@@ -516,161 +410,102 @@ namespace Repository.Objectives
             await UpdateParentOkrProgress(parentOkr.ParentId);
         }
 
-        public async Task<Response> UpdateOwnerOkr(Guid okrId, Guid? ownerId)
+        private void ReplaceUsersForRole(OKR okr, string role, IEnumerable<Guid>? newIds)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (newIds is null) return;
 
-            var okr = await _context.OKRs
-                .Include(o => o.OkrUsers)
-                    .ThenInclude(ou => ou.User)
-                    .ThenInclude(u => u.UserInformation)
-                .Include(o => o.OkrDepartments)
-                    .ThenInclude(od => od.Department)
-                .FirstOrDefaultAsync(o => o.Id == okrId);
+            var newSet = new HashSet<Guid>(newIds.Where(id => id != Guid.Empty));
 
-            var okrHi = await _context.okrHistories
-                .OrderByDescending(x => x.DateCreated)
-                .FirstOrDefaultAsync(x => x.OkrId == okrId);
+            // ✅ lọc tất cả user hiện tại trong role này
+            var current = okr.OkrUsers.Where(x => x.Role == role).ToList();
+            var currentSet = new HashSet<Guid>(current.Select(x => x.UserId));
 
-            if (okr == null)
+            // ✅ xoá những người không còn trong danh sách mới
+            var toRemove = current.Where(x => !newSet.Contains(x.UserId)).ToList();
+            if (toRemove.Count > 0)
+                _context.OkrUsers.RemoveRange(toRemove);
+
+            // ✅ thêm người mới: chỉ người chưa có role này (dù có vai trò khác vẫn được thêm)
+            var toAdd = newSet.Except(currentSet);
+            foreach (var uid in toAdd)
             {
-                return new Response { Code = ResponseCode.NotFound, Message = "Objective not found." };
-            }
-
-            if (!ownerId.HasValue)
-            {
-                return new Response { Code = ResponseCode.Success, Message = "No changes made to owners." };
-            }
-
-            var newOwner = await _context.Users
-                .Include(u => u.UserInformation)
-                .FirstOrDefaultAsync(u => u.Id == ownerId.Value);
-
-            if (newOwner == null)
-            {
-                return new Response { Code = ResponseCode.NotFound, Message = "User not found." };
-            }
-
-            if (!okr.OkrUsers.Any(ou => ou.UserId == ownerId.Value))
-            {
-                var newOkrUser = new OkrUser
+                okr.OkrUsers.Add(new OkrUser
                 {
-                    OkrId = okrId,
-                    UserId = ownerId.Value
-                };
-                _context.OkrUsers.Add(newOkrUser);
-                await _context.SaveChangesAsync();
+                    OkrId = okr.Id,
+                    UserId = uid,
+                    Role = role
+                });
             }
-
-            _context.OKRs.Update(okr);
-            await _context.SaveChangesAsync();
-
-            var okrH = new OkrHistory
-            {
-                Id = Guid.NewGuid(),
-                UserId = Guid.Parse(userId),
-                DateCreated = DateTime.UtcNow.AddHours(7),
-                OldProgress = okrHi?.NewProgress ?? okr.Progress,
-                NewProgress = okr.Progress,
-                OldStatus = okrHi?.NewStatus ?? okr.Status,
-                OldAchieved = okrHi?.OldAchieved ?? okr.Achieved,
-                NewAchieved = okr.Achieved,
-                UnitOfTarget = okrHi?.UnitOfTarget ?? okr.UnitOfTarget,
-                Type = "logging",
-                NewStatus = okr.Status,
-                Description = $"A new Owner '{newOwner.UserInformation.FullName}' has been added",
-                OkrId = okrId
-            };
-
-            _context.okrHistories.Add(okrH);
-            await _context.SaveChangesAsync();
-
-            var message1 = $"The OKR with title '{okr.Title}' is changed and assigned to you";
-            var redirectUrl = "";
-            var notification = new Notification
-            {
-                Id = Guid.NewGuid(),
-                Message = message1,
-                CreatedAt = DateTime.UtcNow.AddHours(7),
-                IsRead = false,
-                UserId = ownerId.Value,
-                RedirectUrl = redirectUrl,
-                User = newOwner
-            };
-
-            _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();
-
-            await _hubContext.Clients.All.SendAsync("ReceiveNotification", ownerId.Value, new Notification
-            {
-                CreatedAt = DateTime.UtcNow.AddHours(7),
-                Message = message1,
-            });
-
-            return new Response { Code = ResponseCode.Success, Message = "Update successfully!" };
         }
 
-        public async Task<Response> UpdateApproveStatus(Guid okrId, ApproveStatusUpdateDTO dto)
+        public async Task UpdateDepartmentOkr(Guid okrId, UpdateDepartmentsDTO dto)
         {
             var okr = await _context.OKRs
-                .Include(o => o.OkrUsers)
-                    .ThenInclude(ou => ou.User)
+                .Include(o => o.OkrDepartments)
                 .FirstOrDefaultAsync(o => o.Id == okrId);
 
             if (okr == null)
-            {
-                return new Response { Code = ResponseCode.NotFound, Message = "Objective not found." };
-            }
+                throw new Exception("Không tìm thấy OKR");
 
-            okr.ApproveStatus = dto.ApproveStatus;
+            // Xóa các phòng ban cũ
+            _context.OkrDepartments.RemoveRange(okr.OkrDepartments);
 
-            if (dto.ApproveStatus == "Reject")
+            // Thêm lại phòng ban mới
+            foreach (var deptId in dto.DepartmentIds.Distinct())
             {
-                if (string.IsNullOrEmpty(dto.Reason))
+                _context.OkrDepartments.Add(new OkrDepartment
                 {
-                    return new Response { Code = ResponseCode.BadRequest, Message = "Reason is required when rejecting an OKR." };
-                }
-                okr.Reason = dto.Reason;
-            }
-            else if (dto.ApproveStatus == "Approve")
-            {
-                okr.Reason = dto.Reason ?? string.Empty;
+                    OkrId = okrId,
+                    DepartmentId = deptId
+                });
             }
 
-            _context.OKRs.Update(okr);
+            await _context.SaveChangesAsync();
+        }
+
+
+
+        public async Task<Response> UpdateOwnerOkr(Guid okrId, UpdatePeopleDTO dto)
+        {
+            var okr = await _context.OKRs
+                .Include(o => o.OkrUsers)
+                .FirstOrDefaultAsync(o => o.Id == okrId);
+
+            if (okr == null)
+                return new Response { Code = ResponseCode.NotFound, Message = "Objective not found." };
+
+            // Thay thế set cho từng role nếu có gửi lên
+            ReplaceUsersForRole(okr, OkrRoles.Owner, dto.OwnerIds);
+            ReplaceUsersForRole(okr, OkrRoles.Manager, dto.ManagerIds);
+
+            okr.LastUpdated = DateTime.UtcNow.AddHours(7);
+
             await _context.SaveChangesAsync();
 
-            var notificationMessage = dto.ApproveStatus == "Approve" ? $"OKR '{okr.Title}' approved" : $"OKR '{okr.Title}' rejected";
-            var redirectUrl = "";
-
-            var ownerUsers = okr.OkrUsers.Select(ou => ou.User).Where(u => u != null).ToList();
-            if (ownerUsers.Any())
+            // (tuỳ chọn) ghi lịch sử thay đổi people
+            var userIdStr = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(userIdStr))
             {
-                var notifications = ownerUsers.Select(user => new Notification
+                _context.okrHistories.Add(new OkrHistory
                 {
                     Id = Guid.NewGuid(),
-                    Message = notificationMessage,
-                    CreatedAt = DateTime.UtcNow.AddHours(7),
-                    IsRead = false,
-                    UserId = user.Id,
-                    RedirectUrl = redirectUrl,
-                    User = user
-                }).ToList();
-
-                _context.Notifications.AddRange(notifications);
+                    UserId = Guid.Parse(userIdStr),
+                    DateCreated = DateTime.UtcNow.AddHours(7),
+                    OldProgress = okr.Progress,
+                    NewProgress = okr.Progress,
+                    OldAchieved = okr.Achieved,
+                    NewAchieved = okr.Achieved,
+                    UnitOfTarget = okr.UnitOfTarget,
+                    OldStatus = okr.Status,
+                    NewStatus = okr.Status,
+                    Type = "logging",
+                    Description = "Update people (owners/managers)",
+                    OkrId = okr.Id
+                });
                 await _context.SaveChangesAsync();
-
-                foreach (var user in ownerUsers)
-                {
-                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", user.Id, new Notification
-                    {
-                        Message = notificationMessage,
-                        RedirectUrl = redirectUrl
-                    });
-                }
             }
 
-            return new Response { Code = ResponseCode.Success, Message = "Update successfully!" };
+            return new Response { Code = ResponseCode.Success, Message = "Update people successfully!" };
         }
 
         public IDictionary<string, int> GetOkrStatisticsByStatus(Guid? departmentId)
@@ -719,70 +554,161 @@ namespace Repository.Objectives
             return result;
         }
 
-        public async Task<Response> UpdateOkrRequest(Guid okrId, OKREditDTO okrEditDTO)
+        public async Task<Response> UpdateOkr(Guid okrId, OKRPartialUpdateDTO dto)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var existingOkr = await _context.OKRs
+            var okr = await _context.OKRs
+                .Include(o => o.OkrUsers)
                 .Include(o => o.OkrDepartments)
-                    .ThenInclude(od => od.Department)
                 .FirstOrDefaultAsync(o => o.Id == okrId);
 
-            if (existingOkr == null)
-            {
+            if (okr == null)
                 return new Response { Code = ResponseCode.NotFound, Message = "Objective not found." };
-            }
-            if (existingOkr.ApproveStatus == "Reject" || existingOkr.ApproveStatus == "Pending")
+
+            // Gán field nếu có
+            if (dto.Title != null) okr.Title = dto.Title;
+            if (dto.Content != null) okr.Content = dto.Content;
+            if (dto.Type != null) okr.Type = dto.Type;
+            if (dto.Scope != null) okr.Scope = dto.Scope;
+            if (dto.TargetNumber.HasValue) okr.TargetNumber = dto.TargetNumber.Value;
+            if (dto.UnitOfTarget != null) okr.UnitOfTarget = dto.UnitOfTarget;
+            if (dto.Cycle != null) okr.Cycle = dto.Cycle;
+            if (dto.ConfidenceLevel != null) okr.ConfidenceLevel = dto.ConfidenceLevel;
+            if (dto.Result != null) okr.Result = dto.Result;
+            if (dto.ParentId.HasValue) okr.ParentId = dto.ParentId;
+            if (dto.DueDate.HasValue) okr.DueDate = dto.DueDate;
+            if (dto.Priority != null) okr.Priority = dto.Priority;
+            if (dto.Company != null) okr.Company = dto.Company;
+            if (dto.Note != null) okr.Note = dto.Note;
+
+            // RULE: Progress/Achieved chỉ cho “công việc cá nhân”
+            var isPersonal = string.Equals(okr.Scope, "Cá nhân", StringComparison.OrdinalIgnoreCase)
+                             || string.Equals(okr.Scope, "Personal", StringComparison.OrdinalIgnoreCase)
+                             || string.Equals(okr.Type, "Cá nhân", StringComparison.OrdinalIgnoreCase)
+                             || string.Equals(okr.Type, "Personal", StringComparison.OrdinalIgnoreCase);
+
+            if (dto.Achieved.HasValue && isPersonal)
             {
-                string? uniqueFileName = null;
-                if (okrEditDTO.ActionPlan != null)
+                var achieved = dto.Achieved.Value;
+                if (okr.TargetNumber > 0 && achieved <= okr.TargetNumber)
                 {
-                    var allowedExtensions = new[] { ".pdf" };
-                    var fileExtension = Path.GetExtension(okrEditDTO.ActionPlan.FileName).ToLower();
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        return new Response { Code = ResponseCode.BadRequest, Message = "Only PDF files are allowed." };
-                    }
-
-                    var allowedMimeTypes = new[] { "application/pdf" };
-                    if (!allowedMimeTypes.Contains(okrEditDTO.ActionPlan.ContentType))
-                    {
-                        return new Response { Code = ResponseCode.BadRequest, Message = "Only PDF files are allowed." };
-                    }
-
-                    var uploadsFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Uploads", "Okrs", existingOkr.Title);
-                    Directory.CreateDirectory(uploadsFolder);
-
-                    uniqueFileName = Guid.NewGuid().ToString() + "_" + okrEditDTO.ActionPlan.FileName;
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await okrEditDTO.ActionPlan.CopyToAsync(fileStream);
-                    }
+                    okr.Achieved = achieved;
+                    okr.Progress = (int)Math.Round((double)achieved / okr.TargetNumber * 100);
+                    okr.Status = GetStatusBasedOnProgress(okr.Progress); // đã có sẵn helper này
                 }
-
-                existingOkr.Title = okrEditDTO.Title;
-                existingOkr.Content = okrEditDTO.Content;
-                existingOkr.Type = okrEditDTO.Type;
-                existingOkr.Scope = okrEditDTO.Scope;
-                existingOkr.TargetNumber = okrEditDTO.TargetNumber;
-                existingOkr.Achieved = okrEditDTO.Achieved;
-                existingOkr.UnitOfTarget = okrEditDTO.UnitOfTarget;
-                existingOkr.Cycle = okrEditDTO.Cycle;
-                existingOkr.ConfidenceLevel = okrEditDTO.ConfidenceLevel;
-                existingOkr.Result = okrEditDTO.Result;
-                existingOkr.ParentId = okrEditDTO.ParentId;
-                existingOkr.ApproveStatus = "Pending";
-                existingOkr.Progress = (int)Math.Round((double)okrEditDTO.Achieved / okrEditDTO.TargetNumber * 100);
-
-                existingOkr.ActionPlanDetail = uniqueFileName != null ? $"/Uploads/Okrs/{existingOkr.Title}/{uniqueFileName}" : existingOkr.ActionPlanDetail;
-                existingOkr.ActionPlan = okrEditDTO.ActionPlan?.FileName ?? existingOkr.ActionPlan;
-
-                _context.OKRs.Update(existingOkr);
-                await _context.SaveChangesAsync();
+                else
+                {
+                    return new Response { Code = ResponseCode.BadRequest, Message = "Invalid Achieved/TargetNumber." };
+                }
             }
-            return new Response { Code = ResponseCode.Success, Message = "Edit successfully!" };
+
+            // (Tuỳ bạn) Cho phép override Status thủ công?
+            if (dto.Status != null)
+            {
+                okr.Status = dto.Status;
+            }
+
+            okr.LastUpdated = DateTime.UtcNow.AddHours(7);
+
+            _context.OKRs.Update(okr);
+            await _context.SaveChangesAsync();
+
+            // (Khuyến nghị) Ghi lịch sử thay đổi tương tự UpdateProgressOkr
+            // ... thêm OkrHistory ở đây nếu cần
+
+            // Cập nhật progress cha nếu liên quan
+            await UpdateParentOkrProgress(okr.ParentId);
+
+            return new Response { Code = ResponseCode.Success, Message = "Update successfully!" };
         }
+
+
+        
+
+        // Map entity -> OKRDTO cho cả list & detail
+        private OKRDTO MapToOkrDto(OKR o)
+        {
+            string Norm(string? s) => string.IsNullOrWhiteSpace(s) ? "" : s;
+
+            var owners = o.OkrUsers.Where(ou => ou.Role == OkrRoles.Owner).ToList();
+            var managers = o.OkrUsers.Where(ou => ou.Role == OkrRoles.Manager).ToList();
+            var creators = o.OkrUsers.Where(ou => ou.Role == OkrRoles.Creator).ToList();
+
+            var ownerIds = owners.Select(ou => ou.UserId).Distinct().ToList();
+            var ownerNames = owners
+                .Select(ou => Norm(ou.User?.UserInformation?.FullName))
+                .Where(n => n.Length > 0)
+                .Distinct()
+                .ToList();
+
+            var managerNames = managers
+                .Select(ou => Norm(ou.User?.UserInformation?.FullName))
+                .Where(n => n.Length > 0)
+                .Distinct()
+                .ToList();
+
+            var creator = creators.FirstOrDefault();
+            var createdById = creator?.UserId;
+            var createdByName = Norm(creator?.User?.UserInformation?.FullName);
+
+            var deptNames = o.OkrDepartments
+                .Select(od => Norm(od.Department?.Name))
+                .Where(n => n.Length > 0)
+                .Distinct()
+                .ToList();
+
+            var managerIds = managers.Select(ou => ou.UserId).Distinct().ToList();
+            var deptIds = o.OkrDepartments.Select(od => od.DepartmentId).Distinct().ToList();
+
+
+            return new OKRDTO
+            {
+                Id = o.Id,
+                Title = o.Title,
+                Content = o.Content,
+                Type = o.Type,
+                Scope = o.Scope,
+
+                OwnerId = ownerIds,
+                OwnerNames = ownerNames,
+
+                ManagerNames = managerNames,
+                ManagerIds = managerIds,
+
+                DepartmentName = deptNames,
+                DepartmentIds = deptIds,
+
+                Progress = o.Progress,
+                TargetProgress = o.TargetProgress,
+                TargetNumber = o.TargetNumber,
+                Achieved = o.Achieved,
+                UnitOfTarget = o.UnitOfTarget,
+                Status = o.Status,
+                ApproveStatus = o.ApproveStatus,
+                Reason = o.Reason,
+                Cycle = o.Cycle,
+                ConfidenceLevel = o.ConfidenceLevel,
+
+                ActionPlan = o.ActionPlan,
+                ActionPlanDetail = o.ActionPlanDetail,
+                Result = o.Result,
+
+                DateCreated = o.DateCreated,
+                DueDate = o.DueDate,
+                Priority = o.Priority,
+                Company = o.Company,
+                LastUpdated = o.LastUpdated,
+                Note = o.Note,
+
+                ParentAlignment = o.ParentId.HasValue
+                    ? _context.OKRs.Where(x => x.Id == o.ParentId.Value).Select(x => x.Title).FirstOrDefault()
+                    : null,
+                ParentId = o.ParentId,
+
+                CreatedById = createdById,
+                CreatedByName = string.IsNullOrEmpty(createdByName) ? null : createdByName,
+            };
+        }
+
+
     }
 }

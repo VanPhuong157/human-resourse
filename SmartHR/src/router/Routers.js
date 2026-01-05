@@ -1,3 +1,4 @@
+// Cập nhật file: Routers.js
 import React from 'react'
 import {Route, Routes, Navigate} from 'react-router-dom'
 import CandidatePage from '../pages/recruitment/candidate/list/CandidatePage'
@@ -9,7 +10,6 @@ import EditEmployeePage from '../pages/employee/infomation/edit/EditEmployeePage
 import RequestTab from '../pages/okr/requestTab/RequestTab'
 import Login from '../pages/auth/login/Login'
 import NotFoundPage from '../pages/errorPage/NotFoundPage'
-import Dashboard from '../pages/dashboard/DashBoard'
 import PrivateRoutes from './PrivateRouters'
 import ForgetPassword from '../pages/auth/forgetPassword/ForgetPassword'
 import HomePage1 from '../pages/homepage/HomePage1'
@@ -21,6 +21,9 @@ import PermissionTab from '../pages/admin/permission/PermissionTab'
 import UserGroupTab from '../pages/admin/generalsetting/UserGroupTab'
 import ReasonPageTab from '../pages/admin/homepagesetting/ReasonPageTab'
 import HomePageTab from '../pages/admin/homepagesetting/HomePageTab'
+import Dashboard from '../pages/dashboard/Dashboards'
+import Schedule from '../pages/schedule/Schedule' // Import mới
+
 function Routers() {
   return (
     <Routes>
@@ -81,6 +84,10 @@ function Routers() {
         <Route path="/homepagesetting" element={<HomePageTab />} />
       </Route>
 
+      <Route element={<PrivateRoutes requiredPermissions={['Common']} />}>
+        <Route path="/schedule" element={<Schedule />} /> {/* Route mới */}
+      </Route>
+
       <Route element={<PrivateRoutes requiredPermissions={['Admin']} />}>
         <Route
           path="/userPermission/permission/:userId"
@@ -110,11 +117,7 @@ function Routers() {
           element={<CandidatePage />}
         />
       </Route>
-      <Route
-        element={<PrivateRoutes requiredPermissions={['Candidate:List']} />}
-      >
-        <Route path="/candidate" element={<CandidatePage />} />
-      </Route>
+
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

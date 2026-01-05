@@ -9,6 +9,56 @@ const handleFilterUrl = (url, filters) => {
   return url
 }
 const path = {
+
+  schedule: {
+  getAll: (pageIndex = 1, pageSize = 10) => 
+    `Schedules?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+  create: () => `Schedules`,
+  approve: (id) => `Schedules/${id}/approve`,
+  downloadFile: (fileName) => `Schedules/file/${fileName}`,
+},
+
+  workflow: {
+    // LEFT TABLE
+    getSteps: (pageIndex, pageSize, filters) =>
+      handleFilterUrl(
+        `workflow/steps?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+        filters,
+      ),
+    getStepRow: (stepId) => `workflow/steps/${stepId}`,
+updateStep: (stepId) => `workflow/steps/${stepId}`,
+    // SUBMISSION (drawer)
+    createSubmission: (stepId) => `workflow/steps/${stepId}/submissions`,
+    getSubmission: (id) => `workflow/submissions/${id}`,
+
+    // ACTIONS
+  submit: (id) => `workflow/submissions/${id}/submit`,
+  resubmit: (id) => `workflow/submissions/${id}/resubmit`,
+  requestChanges: (id) => `workflow/submissions/${id}/request-changes`,
+  pass: (id) => `workflow/submissions/${id}/pass`,
+  approve: (id) => `workflow/submissions/${id}/approve`,
+  reject: (id) => `workflow/submissions/${id}/reject`,
+    // FILES
+    listFiles: (id) => `workflow/submissions/${id}/files`,
+    uploadFile: (id) => `workflow/submissions/${id}/files`,
+    updateFile: (sid, fid) => `workflow/submissions/${sid}/files/${fid}`,
+    deleteFile: (id, fid) => `workflow/submissions/${id}/files/${fid}`,
+
+    // COMMENTS
+    listComments: (id) => `workflow/submissions/${id}/comments`,
+    addComment: (id) => `workflow/submissions/${id}/comments`,
+  },
+
+  // (tuỳ bạn có dùng) vẫn có thể để policy:
+  policy: {
+    getSteps: (pageIndex, pageSize, filters) =>
+      handleFilterUrl(
+        `policysteps?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+        filters,
+      ),
+      
+  },
+
   admin: {
     getPermissions: (pageIndex, pageSize, filters) => {
       return handleFilterUrl(
@@ -32,36 +82,16 @@ const path = {
     refreshToken: ({token}) => `Users/refresh-token?token=${token}`,
     forgotPassword: ({email}) => `Users/forgot-password?email=${email}`,
   },
-  dashboard: {
-    getStatisticCandidates: ({departmentId}) => {
-      return departmentId != null
-        ? `Statistic/candidates/by-department?departmentId=${departmentId}`
-        : `Statistic/candidates/by-department`
-    },
-    getStatisticUsers: ({departmentId}) => {
-      return departmentId != null
-        ? `Statistic/users/by-department?departmentId=${departmentId}`
-        : `Statistic/users/by-department`
-    },
-    getStatisticJobPosts: ({departmentId}) => {
-      return departmentId != null
-        ? `Statistic/job-posts/by-department?departmentId=${departmentId}`
-        : `Statistic/job-posts/by-department`
-    },
-    getStatisticOkr: ({departmentId}) => {
-      return departmentId != null
-        ? `Statistic/okr/by-department?departmentId=${departmentId}`
-        : `Statistic/okr/by-department`
-    },
-    getStatisticOkrRequest: ({departmentId}) => {
-      return departmentId != null
-        ? `Statistic/okr-request/by-department?departmentId=${departmentId}`
-        : `Statistic/okr-request/by-department`
-    },
-    getStatisticCandidateOfPost: ({departmentId}) => {
-      return departmentId != null
-        ? `Statistic/candidate-of-post/by-department?departmentId=${departmentId}`
-        : `Statistic/candidate-of-post/by-department`
+   statistic: {
+    workDashboard: (type, { departmentId, userId, from, to } = {}) => {
+      const params = new URLSearchParams()
+      if (departmentId) params.append('departmentId', departmentId)
+      if (userId) params.append('userId', userId)
+      if (from) params.append('from', from)
+      if (to) params.append('to', to)
+
+      const qs = params.toString()
+      return `/statistic/work-dashboard/${type}` + (qs ? `?${qs}` : '')
     },
   },
   okr: {
@@ -72,6 +102,8 @@ const path = {
       )
     },
     editOkrs: ({okrId}) => `Okrs/${okrId}/approveStatus`,
+    updateOkr: ({okrId}) => `Okrs/${okrId}/UpdateOkr`, // partial update các field khác
+    updateDepartmentOkr: ({okrId}) => `okrs/${okrId}/UpdateDepartmentOkr`,
     getOkrs: (pageIndex, pageSize, departmentId, filters) => {
       return handleFilterUrl(
         `Okrs/by-department?pageIndex=${pageIndex}&pageSize=${pageSize}&departmentId=${departmentId}`,
@@ -89,6 +121,8 @@ const path = {
       )
     },
     addOkrHistoryComment: ({okrId}) => `OkrHistories/${okrId}/comments`,
+    downloadCommentFile: ({fileId, inline} = {}) =>
+      `OkrHistories/download?fileId=${encodeURIComponent(fileId)}${inline ? '&inline=1' : ''}`,
     deleteOkrHistoryComment: ({okrHistoryId}) =>
       `OkrHistories/comments/${okrHistoryId}`,
     editProgressOkr: ({okrId}) => `Okrs/${okrId}/UpdateProgressOkr`,

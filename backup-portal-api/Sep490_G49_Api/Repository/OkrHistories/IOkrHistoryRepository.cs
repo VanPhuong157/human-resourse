@@ -1,6 +1,7 @@
 ﻿using BusinessObjects.DTO;
 using BusinessObjects.DTO.Okr;
 using BusinessObjects.Response;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,8 @@ namespace Repository.OkrHistories
     {
         Task<IEnumerable<OkrHistoryDTO>> GetOkrHistories(Guid okrId);
         Task<IEnumerable<OKRHistoryCommentDTO>> GetComments(Guid okrId);
-        Task<Response> AddComment(Guid okrId, string comment);
+        Task<Response> AddComment(Guid okrId, string text, IFormFileCollection files);
         Task<Response> DeleteComment(Guid okrHistoryId);
+        Task<(string PhysicalPath, string ContentType, string FileName)?> GetCommentFilePathAsync(Guid id);
     }
 }

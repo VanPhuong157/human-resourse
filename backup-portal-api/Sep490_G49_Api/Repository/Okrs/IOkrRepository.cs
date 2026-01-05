@@ -9,11 +9,13 @@ namespace Repository.Objectives
     public interface IOkrRepository
     {
         Task<Response> GetOkrsSlowProgress();
-        Task<OKRDetailsDTO> GetOkrById(Guid id);
+        Task<OKRDTO> GetOkrById(Guid id);
         Task<Response> CreateOkr(OKRCreateDTO okrCreateDTO);
         Task<Response> UpdateProgressOkr(Guid okrId, int achieved);
-        Task<Response> UpdateOwnerOkr(Guid okrId, Guid? ownerId);
-        Task<Response> UpdateOkrRequest(Guid okrId, OKREditDTO okrEditDTO);
+        Task<Response> UpdateOwnerOkr(Guid okrId, UpdatePeopleDTO dto);
+        Task UpdateDepartmentOkr(Guid okrId, UpdateDepartmentsDTO dto);
+        //Task<Response> UpdateOkrRequest(Guid okrId, OKREditDTO okrEditDTO);
+        Task<Response> UpdateOkr(Guid okrId, OKRPartialUpdateDTO dto);
         Task<PaginatedList<OKRDTO>> GetOkrsByDepartmentId(
            int pageIndex = 1,
            int pageSize = 10,
@@ -21,9 +23,9 @@ namespace Repository.Objectives
            string? type = null,
            string? scope = null,
            string? status = null,
-           string? cycle = null,
-           Guid? departmentId = null);
-        Task<Response> UpdateApproveStatus(Guid id, [FromBody] ApproveStatusUpdateDTO dto);
+           string? cycle = null
+          );
+        //Task<Response> UpdateApproveStatus(Guid id, [FromBody] ApproveStatusUpdateDTO dto);
     //    Task<PaginatedList<OKRRequestDTO>> GetOkrsRequests(
     //int pageIndex = 1,
     //int pageSize = 10,

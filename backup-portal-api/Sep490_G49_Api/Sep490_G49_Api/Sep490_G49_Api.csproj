@@ -33,7 +33,7 @@
     <Folder Include="Uploads\Documents\" />
     <Folder Include="Uploads\Applicants\" />
     <Folder Include="Uploads\Okrs\" />
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\uploads\okr\808aaf5e-f46f-47d6-b314-13a0d0f68c79\comments\" />
   </ItemGroup>
 
   <ItemGroup>

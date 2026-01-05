@@ -43,9 +43,30 @@ namespace Sep490_G49_Api.Controllers
         }
 
         [HttpPost("{okrId}/comments")]
-        public async Task<Response> AddComment(Guid okrId, [FromBody] string comment)
+        [Consumes("multipart/form-data")]
+        public async Task<Response> AddComment(Guid okrId, [FromForm] AddCommentRequest req)
         {
-            return await okrRepository.AddComment(okrId, comment);
+            if (!ModelState.IsValid)
+            {
+                foreach (var key in ModelState.Keys)
+                {
+                    var errors = ModelState[key]?.Errors;
+                    if (errors != null && errors.Count > 0)
+                    {
+                        foreach (var error in errors)
+                        {
+                            Console.WriteLine($"[ModelError] {key}: {error.ErrorMessage}");
+                        }
+                    }
+                }
+
+                // Trả lại lỗi chi tiết
+                return new Response
+                {
+                    Message = "ModelState is invalid",
+                };
+            }
+            return await okrRepository.AddComment(okrId, req.Text, req.Attachments);
         }
 
         [HttpDelete("comments/{okrHistoryId}")]
@@ -54,6 +75,16 @@ namespace Sep490_G49_Api.Controllers
             return await okrRepository.DeleteComment(okrHistoryId);
             
         }
+
+        [HttpGet("download")]
+        public IActionResult Download([FromQuery] Guid fileId)
+        {
+            var info = okrRepository.GetCommentFilePathAsync(fileId).Result;
+            if (info == null) return NotFound();
+            return PhysicalFile(info.Value.PhysicalPath, info.Value.ContentType, info.Value.FileName, true);
+        }
+
+
 
     }
 }

@@ -42,8 +42,8 @@ const ListParentAlignment = ({onSelectOneRow}) => {
 
   const filteredData = data?.data?.items.filter(
     (item) =>
-      (item.type === 'Objective' && item.status === 'Processing') ||
-      item.status === 'Not Started',
+      (item.type === 'Công việc chung' && item.status === 'Processing') ||
+      item.status === 'To Do',
   )
   const formattedData = filteredData?.map((item) => ({
     ...item,

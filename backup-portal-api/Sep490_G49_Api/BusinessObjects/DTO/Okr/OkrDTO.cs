@@ -16,6 +16,9 @@
         public string? ParentAlignment { get; set; }
         public Guid? ParentId { get; set; }
         public List<Guid>? OwnerId { get; set; } // ID của Người thực hiện
+        public List<Guid>? ManagerIds { get; set; } // ID của Người thực hiện
+        public List<Guid>? DepartmentIds { get; set; } // ID của Người thực hiện
+
         public List<string>? ManagerNames { get; set; } // Danh sách Người giao
         public int? TargetProgress { get; set; }
         public int? TargetNumber { get; set; }
@@ -33,5 +36,7 @@
         public string? Company { get; set; } // Công ty
         public DateTime? LastUpdated { get; set; } // Ngày chỉnh sửa lần cuối
         public string? Note { get; set; }
+        public Guid? CreatedById { get; set; }   // id người tạo (từ vai Creator)
+        public string? CreatedByName { get; set; }   // tên người tạo
     }
 }

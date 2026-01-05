@@ -12,6 +12,15 @@ export const STATUS_COLORS = {
   default: {bg: 'rgba(229,231,235,1)', fg: 'rgb(107,114,128)'},
 }
 
+// Type (dùng đúng key = giá trị DB trả về)
+export const TYPE_COLORS = {
+  'Công việc chung': {bg: 'rgba(245,158,11,.20)', fg: 'rgb(124,45,18)'}, // orange
+  'Công việc cá nhân': {bg: 'rgba(139,92,246,.18)', fg: 'rgb(76,29,149)'},  //violet
+
+  default:   { bg: 'rgba(229,231,235,1)', fg: 'rgb(107,114,128)' },
+}
+
+
 // Priority
 export const PRIORITY_COLORS = {
   Low: {bg: 'rgba(92,0,163,.14)', fg: 'rgb(85,59,105)'}, // tím

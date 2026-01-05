@@ -26,7 +26,7 @@ const OkrPage = () => {
       { label: 'All Tasks', filter: {} },
       { label: 'Doing', filter: { status: 'Processing' } },
       { label: 'Done', filter: { status: 'Done' } },
-      { label: 'To Do', filter: { status: 'Not Started' } },
+      { label: 'To Do', filter: { status: 'To Do' } },
       { label: 'PostPone', filter: { status: 'PostPone' } },
       { label: 'Archived', filter: { status: 'Archived' } },
       { label: 'VHS', filter: { company: 'VHS' } },

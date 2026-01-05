@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.Mapping;
+using BusinessObjects.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,6 @@ namespace BusinessObjects.DTO.Okr
         public DateTime? CreatedAt { get; set; }       
         public string? Description { get; set; }
         public Guid? OkrId { get; set; }
+        public List<CommentFileDTO> Attachments { get; set; }
     }
 }

@@ -1,31 +1,74 @@
-/* BẮT BUỘC: cho toàn bộ cây cao hết */
-html, body, #root { height: 100%; }
-
-/* Khung ngoài */
-.App {
-  text-align: center;
-  display: flex;
-  height: 100vh;   /* full viewport */
-  min-height: 0;   /* unlock child flex height */
-  overflow: hidden;/* tránh scrollbar bọc ngoài */
+/* Đảm bảo toàn bộ trang cuộn nếu cần */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow-x: auto;
+  width: 100%;
 }
 
-/* Cột phải chứa router */
-.main {
+html, body, #root, .App, .main, .router {
+  overflow-x: hidden !important;
+}
+.App {
+  display: flex;
+  height: 100vh;
+  min-height: 0;
+  overflow-x: auto;
   width: 100%;
+}
+
+.main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;          /* QUAN TRỌNG */
-  background-color: white;
+  min-height: 0;
+  overflow-x: auto;
+  background: #fff;
+  width: 100%;
 }
 
-/* Vùng render pages (OkrTab) */
 .router {
   flex: 1;
-  min-height: 0;          /* QUAN TRỌNG */
-  overflow: hidden;       /* ag-grid & sidepane tự scroll */
+  min-height: 0;
+  overflow: auto;
   margin: 0;
   padding: 5px 10px;
-  box-sizing: border-box; /* giữ khoảng cách nhưng vẫn full-height */
+  box-sizing: border-box;
+  width: 100%;
 }
+
+/* Giới hạn chiều cao và kích hoạt cuộn trong AG Grid */
+.router .ag-theme-alpine {
+  height: 800px !important; /* Giới hạn chiều cao */
+  width: 100%;
+}
+
+.router .ag-body-viewport,
+.router .ag-center-cols-viewport {
+  overflow-x: auto !important; /* Cuộn ngang */
+  overflow-y: auto !important; /* Cuộn dọc nếu cần */
+}
+
+/* Buộc chiều cao thanh cuộn ngang to hơn (override AG Grid default) */
+
+
+/* Tùy chỉnh giao diện thanh cuộn (áp dụng cho toàn bộ, nhưng ưu tiên AG Grid) */
+*::-webkit-scrollbar {
+  width: 20px; /* Tăng thanh cuộn dọc nếu cần */
+  height: 50px !important; /* Buộc chiều cao thanh cuộn ngang 50px */
+  display: initial !important;
+}
+*::-webkit-scrollbar-thumb {
+  background: #D3D1CB !important; /* Màu đậm hơn */
+  border-radius: 12px !important;
+  min-height: 40px !important; /* Thumb to hơn */
+}
+*::-webkit-scrollbar-track {
+  background: #D3D1CB !important;
+  border-radius: 12px !important;
+}
+* {
+  scrollbar-width: thick !important; /* Cho Firefox: thick thay vì thin */
+  scrollbar-color: #D3D1CB #F3F4F6 !important;
+}
+

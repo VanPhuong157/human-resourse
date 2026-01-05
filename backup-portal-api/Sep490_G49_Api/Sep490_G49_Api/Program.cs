@@ -1,34 +1,37 @@
+﻿using BusinessObjects.Files;
 using BusinessObjects.Models;
+using DataAccess.Emails;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Repository.Departments;
+using Repository.Notifications;
+using Repository.Objectives;
+using Repository.OkrHistories;
+using Repository.Permissions;
+using Repository.PolicyRepository;
 using Repository.Roles;
+using Repository.Schedules;
+using Repository.Statistic;
+using Repository.UserGroups;
 using Repository.UserHistories;
 using Repository.UserInformations;
 using Repository.Users;
+using Repository.WorkFlows;
 using System.Text;
-using Repository.Objectives;
-using Repository.OkrHistories;
-using DataAccess.Emails;
-using Repository.Notifications;
-using Repository.Statistic;
-using Repository.Permissions;
-using Repository.UserGroups;
-using Microsoft.Extensions.FileProviders;
-using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers()
-        .AddNewtonsoftJson(options =>
-        {
-            options.SerializerSettings.Converters.Add(new DateTimeConverter());
-        });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.Converters.Add(new DateTimeConverter());
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSignalR();
@@ -50,40 +53,41 @@ builder.Services.AddSwaggerGen(option =>
         Scheme = "Bearer"
     });
     option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
                 {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type=ReferenceType.SecurityScheme,
-                                Id="Bearer"
-                            }
-                        },
-                        new string[]{}
-                    }
-                });
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
 });
 
-if (builder.Environment.IsDevelopment())
+// ✅ Cấu hình CORS
+var allowedOrigins = new[]
 {
-    builder.Services.AddCors(options =>
-        options.AddDefaultPolicy(policy =>
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-    ));
-}
-else
+    "http://192.168.10.111:3000",
+    "http://sep490g49-ui.eastasia.cloudapp.azure.com",
+    "http://localhost:3000"
+};
+
+builder.Services.AddCors(options =>
 {
-    builder.Services.AddCors(options =>
-        options.AddDefaultPolicy(policy =>
-            policy.WithOrigins("http://sep490g49-ui.eastasia.cloudapp.azure.com")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials()
-    ));
-}
+    options.AddPolicy("DefaultCors", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .WithExposedHeaders("Content-Disposition", "filename")
+    );
+});
+
+// Repositories
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserInformationRepository, UserInformationRepository>();
 builder.Services.AddTransient<IDepartmentRepository, DepartmentRepository>();
@@ -96,8 +100,10 @@ builder.Services.AddTransient<IStatisticRepository, StatisticRepository>();
 builder.Services.AddTransient<IPermissionRepository, PermissionRepository>();
 builder.Services.AddTransient<IUserGroupRepository, UserGroupRepository>();
 builder.Services.AddTransient<EmailDAO, EmailDAO>();
-
-
+builder.Services.AddScoped<IPolicyStepRepository, PolicyStepRepository>();
+builder.Services.AddScoped<IWorkFlowRepository, WorkFlowRepository>();
+builder.Services.AddSingleton<IFileStorage, FileStorage>();
+builder.Services.AddTransient<IScheduleRepository, ScheduleRepository>();
 
 builder.Services.AddDbContext<SEP490_G49Context>(options =>
 {
@@ -105,7 +111,7 @@ builder.Services.AddDbContext<SEP490_G49Context>(options =>
 });
 
 builder.Services.AddAuthentication(options =>
-{
+{                                               
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -113,7 +119,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.SaveToken = true;
     options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -125,24 +131,30 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"]))
     };
 });
-builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
+
 var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
 if (!Directory.Exists(uploadsPath))
 {
     Directory.CreateDirectory(uploadsPath);
 }
 
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseHangfireDashboard("/dashboard");
+
 app.UseRouting();
+
+// ✅ Đặt UseCors đúng vị trí
+app.UseCors("DefaultCors");
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors();
+
+app.UseHangfireDashboard("/dashboard");
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(uploadsPath),
@@ -150,9 +162,11 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapControllers();
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<NotificationHub>("/notificationHub");
     // Other endpoints...
 });
+
 app.Run();

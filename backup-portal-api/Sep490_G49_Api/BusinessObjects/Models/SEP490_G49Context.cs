@@ -30,6 +30,23 @@ namespace BusinessObjects.Models
         public DbSet<OkrUser> OkrUsers { get; set; }
         public DbSet<OkrDepartment> OkrDepartments { get; set; }
 
+        public DbSet<CommentFile> CommentFiles { get; set; }
+
+        public DbSet<PolicyStep> PolicySteps { get; set; }
+        public DbSet<PolicyDocument> PolicyDocument { get; set; }
+        public DbSet<PolicyStepUser> PolicyStepUsers { get; set; }
+        public DbSet<PolicyStepDepartment> PolicyStepDepartments { get; set; }
+        public DbSet<Submission> Submissions { get; set; }
+        public DbSet<SubmissionParticipant> SubmissionParticipants { get; set; }
+        public DbSet<SubmissionDepartment> SubmissionDepartments { get; set; }
+        public DbSet<SubmissionEvent> SubmissionEvents { get; set; }
+        public DbSet<SubmissionFile> SubmissionFiles { get; set; }
+        public DbSet<SubmissionComment> SubmissionComments { get; set; }
+        public DbSet<Schedule> Schedules { get; set; }
+        public DbSet<ScheduleAttachment> ScheduleAttachments { get; set; }
+        public DbSet<ScheduleParticipant> ScheduleParticipants { get; set; }
+
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             IConfigurationRoot conf = new ConfigurationBuilder()
@@ -42,10 +59,50 @@ namespace BusinessObjects.Models
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Schedule>(e =>
+            {
+                e.ToTable("Schedules");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Title).HasMaxLength(255).IsRequired();
+                e.Property(x => x.Description).HasMaxLength(1000);
+                e.HasOne(x => x.Creator).WithMany().HasForeignKey(x => x.CreatorId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.ApprovedBy).WithMany().HasForeignKey(x => x.ApprovedById).OnDelete(DeleteBehavior.SetNull);
+            });
 
+            modelBuilder.Entity<ScheduleAttachment>(e =>
+            {
+                e.ToTable("ScheduleAttachments");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+                e.Property(x => x.StoredPath).HasMaxLength(500).IsRequired();
+                e.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
+                e.HasOne(x => x.Schedule).WithMany(s => s.Attachments).HasForeignKey(x => x.ScheduleId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ScheduleParticipant>(e =>
+            {
+                e.ToTable("ScheduleParticipants");
+                e.HasKey(x => new { x.ScheduleId, x.UserId });
+                e.HasOne(x => x.Schedule).WithMany(s => s.Participants).HasForeignKey(x => x.ScheduleId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CommentFile>(e =>
+       {
+           e.ToTable("CommentFiles");
+           e.HasKey(x => x.Id);
+           e.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+           e.Property(x => x.StoredPath).HasMaxLength(500).IsRequired();
+           e.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
+           e.HasOne(x => x.OkrHistory)
+                           .WithMany(h => h.Attachments)
+                           .HasForeignKey(x => x.OkrHistoryId)
+                           .OnDelete(DeleteBehavior.Cascade);
+       });
 
             modelBuilder.Entity<OkrUser>().ToTable("OkrUsers");
-            modelBuilder.Entity<OkrUser>().HasKey(ou => new { ou.OkrId, ou.UserId });
+            modelBuilder.Entity<OkrUser>()
+.HasKey(ou => new { ou.OkrId, ou.UserId, ou.Role });
             modelBuilder.Entity<OkrUser>()
                 .HasOne(ou => ou.Okr)
                 .WithMany(o => o.OkrUsers)
@@ -174,7 +231,7 @@ namespace BusinessObjects.Models
 
             };
 
-      
+
 
             modelBuilder.Entity<Permission>().HasData(permissions);
             modelBuilder.Entity<RolePermission>()
@@ -391,7 +448,7 @@ namespace BusinessObjects.Models
                     RoleId = hrRoleId,
                     PermissionId = Guid.Parse("2df7174c-c270-4021-9e86-69faa72086a1"),
                     IsEnabled = true // Employee:Edit
-                }, 
+                },
                 new RolePermission
                 {
                     RoleId = hrRoleId,

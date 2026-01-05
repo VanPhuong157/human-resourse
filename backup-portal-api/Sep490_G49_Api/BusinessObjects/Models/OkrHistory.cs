@@ -25,5 +25,7 @@ namespace BusinessObjects.Models
         public string? Type { get; set; }
         public Guid OkrId { get; set; }
         public OKR OKR { get; set; }
+
+        public ICollection<CommentFile> Attachments { get; set; } = new List<CommentFile>();
     }
 }

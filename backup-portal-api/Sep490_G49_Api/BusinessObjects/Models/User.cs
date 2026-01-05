@@ -40,5 +40,6 @@ namespace BusinessObjects.Models
         public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
         public ICollection<UserGroup_User> UserGroup_Users { get; set; } = new List<UserGroup_User>();
         public ICollection<OkrUser> OkrUsers { get; set; }
+        public ICollection<SubmissionComment> SubmissionComments { get; set; }
     }
 }

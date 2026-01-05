@@ -2,19 +2,11 @@ import React, { useEffect, useState, useCallback, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar'
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined'
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 import GroupsIcon from '@mui/icons-material/Groups'
-import QueryStatsIcon from '@mui/icons-material/QueryStats'
-import InsightsIcon from '@mui/icons-material/Insights'
-import TimelineIcon from '@mui/icons-material/Timeline'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
-import AddHomeWorkIcon from '@mui/icons-material/AddHomeWork'
-import HomeWorkIcon from '@mui/icons-material/HomeWork'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import BubbleChartIcon from '@mui/icons-material/BubbleChart'
 import HowToRegIcon from '@mui/icons-material/HowToReg'
-import PersonSearchIcon from '@mui/icons-material/PersonSearch'
-import DescriptionIcon from '@mui/icons-material/Description'
 import InsertChartIcon from '@mui/icons-material/InsertChart'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import Avatar from '@mui/material/Avatar'
@@ -29,6 +21,10 @@ import { styled } from '@mui/material/styles'
 import * as signalR from '@microsoft/signalr'
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck'
+import TaskAltIcon from '@mui/icons-material/TaskAlt'
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined' // ← Thêm icon cho Schedule
 
 import '../../assets/style/sidebar/SideBar.css'
 import eventBus, { EVENT_BUS_KEY } from '../../services/eventBus'
@@ -45,7 +41,7 @@ const StyledLink = styled(Link)({
 const StyledSidebar = styled(Sidebar)({
   color: 'white',
   overflowY: 'auto',
-  backgroundColor: 'black',
+  backgroundColor: '#000000', // ← Sửa lỗi 'Geay' → đen chuẩn
 })
 
 const StyledSubMenu = styled(SubMenu)({
@@ -114,21 +110,15 @@ const menuItems = [
   { icon: <InsertChartIcon />, label: 'DashBoard', to: 'dashboard' },
   { icon: <GroupsIcon />, label: 'User Management', to: 'user' },
   {
-    icon: <AssignmentIndIcon />,
-    label: 'Recruitment Management',
+    icon: <AssignmentTurnedInIcon />,
+    label: 'Task Management',
     subMenu: [
-      { icon: <PersonSearchIcon />, label: 'Candidate Management', to: 'candidate' },
-      { icon: <DescriptionIcon />, label: 'Job Post Management', to: 'jobpost' },
+      { icon: <TaskAltIcon />, label: 'Daily Task', to: 'okr' },
+      { icon: <PlaylistAddCheckIcon />, label: 'Project Task', to: 'okrequest' },
     ],
   },
-  {
-    icon: <QueryStatsIcon />,
-    label: 'Okr Management',
-    subMenu: [
-      { icon: <InsightsIcon />, label: 'Okr Public Management', to: 'okr' },
-      { icon: <TimelineIcon />, label: 'Okr Request Management', to: 'okrequest' },
-    ],
-  },
+  // ← Thêm mục Schedule ở đây – vị trí hợp lý, sau Task Management
+  { icon: <CalendarTodayOutlinedIcon />, label: 'Lịch Làm Việc', to: 'schedule' },
   {
     icon: <ManageAccountsIcon />,
     label: 'Admin',
@@ -136,8 +126,6 @@ const menuItems = [
       { icon: <BubbleChartIcon />, label: 'Department', to: 'department' },
       { icon: <HowToRegIcon />, label: 'Role', to: 'role' },
       { icon: <GroupAddIcon />, label: 'User Group', to: 'userGroup' },
-      { icon: <AddHomeWorkIcon />, label: 'Home Page Setting', to: 'homepagesetting' },
-      { icon: <HomeWorkIcon />, label: 'Home Page Reason', to: 'homepagereason' },
     ],
   },
 ]
@@ -145,7 +133,6 @@ const menuItems = [
 const settings = ['Account', 'Dashboard', 'HomePage', 'Logout']
 
 // ---------- component ----------
-// Drop-in replacement for your current SideBar.js (header integrated inside sidebar) 
 const SideBar = () => {
   const navigate = useNavigate()
   const { user, logout } = useContext(UserContext)
@@ -244,12 +231,11 @@ const SideBar = () => {
             <IconButton size="small" onClick={handleCollapseSidebar} sx={{ color: 'white' }}>
               <MenuOutlinedIcon />
             </IconButton>
-            <Typography sx={{ color: 'white', fontWeight: 700, letterSpacing: '.12em' }}>SHRS</Typography>
           </UserRow>
           <UserRow>
             {user?.auth ? (
               <Typography sx={{ color: 'white', fontSize: 14 }}>
-                <span style={{ color: '#d1d5db' }}>Hi </span>
+                <span style={{ color: '#d1d5db' }}> </span>
                 <span style={{ color: '#60a5fa' }}>{userInfo?.data?.fullName}</span>
               </Typography>
             ) : (
@@ -275,9 +261,6 @@ const SideBar = () => {
 
       {/* Menus */}
       <Menu>
-        {/* optional divider */}
-        <StyledMenuItem disabled style={{ opacity: 0.35, cursor: 'default' }}>Navigation</StyledMenuItem>
-
         {menuItems.map((item, index) => {
           if (item.subMenu) {
             const filteredSubMenu = item.subMenu.filter((subItem) => {
@@ -289,9 +272,9 @@ const SideBar = () => {
                 (subItem.label === 'Role' && hasAdminListPermission) ||
                 (subItem.label === 'User Group' && hasAdminListPermission) ||
                 (subItem.label === 'Home Page Setting' && hasAdminListPermission) ||
-                (subItem.label === 'Okr Public Management' && hasOkrListPermission) ||
+                (subItem.label === 'Daily Task' && hasOkrListPermission) ||
                 (subItem.label === 'Home Page Reason' && hasAdminListPermission) ||
-                (subItem.label === 'Okr Request Management' && hasOkrRequestPermission)
+                (subItem.label === 'Project Task' && hasOkrRequestPermission)
               )
             })
 
@@ -310,8 +293,11 @@ const SideBar = () => {
             )
           }
 
+          // Các menu đơn (không có subMenu)
           const hasPermission =
-            item.label === 'DashBoard' || (item.label === 'User Management' && hasEmployeeListPermission)
+            item.label === 'DashBoard' ||
+            (item.label === 'User Management' && hasEmployeeListPermission) ||
+            item.label === 'Lịch Làm Việc' // ← Schedule luôn hiển thị (không cần permission riêng)
 
           return (
             hasPermission && (
