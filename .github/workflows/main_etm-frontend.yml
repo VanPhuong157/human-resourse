@@ -29,6 +29,7 @@ jobs:
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'TÊN_WEB_APP_FE_CỦA_BẠN' # Thay bằng tên Web App bạn vừa tạo
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FE }} # Tạo Secret này trong GitHub
-          package: './SmartHR/build' # Đổi thành './SmartHR/dist' nếu dùng Vite
+          app-name: 'etm-frontend' 
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FE }}
+          package: './SmartHR/build' 
+
