@@ -31,9 +31,10 @@ jobs:
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'etm-frontend' 
+          app-name: 'etm-frontend-buhxbrdwa7aperhw' 
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FE }}
           package: './SmartHR/build' 
+
 
 
 
