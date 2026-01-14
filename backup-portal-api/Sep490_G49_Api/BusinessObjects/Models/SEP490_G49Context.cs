@@ -293,11 +293,11 @@ namespace BusinessObjects.Models
                     Type = "Basic"
                 }
             );
-            CreatePasswordHash("BManhBM@1311", out byte[] passwordHash, out byte[] passwordSalt);
+            CreatePasswordHash("VanPhuong1507@", out byte[] passwordHash, out byte[] passwordSalt);
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
-                    Id = Guid.Parse("62240fc0-2a2a-4b45-9ba5-6a57667413c2"),
+                    Id = Guid.Parse("12240fc0-2a2a-4b45-9ba5-6a57667413c2"),
                     Username = "AdminSHR",
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
