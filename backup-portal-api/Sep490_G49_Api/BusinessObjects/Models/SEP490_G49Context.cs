@@ -312,7 +312,7 @@ namespace BusinessObjects.Models
                 new UserInformation
                 {
                     Id = Guid.Parse("a852b906-1eac-44ba-bcbe-4f43ad62af11"),
-                    UserId = Guid.Parse("62240fc0-2a2a-4b45-9ba5-6a57667413c2"),
+                    UserId = Guid.Parse("12240fc0-2a2a-4b45-9ba5-6a57667413c2"),
                     Status = "Active",
                     FullName = "AdminSHR",
                     Code = "ADMIN"
