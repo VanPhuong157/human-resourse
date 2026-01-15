@@ -62,7 +62,7 @@ const Login = (props) => {
         error = 'Username must be at least 6 characters long.'
       }
       if (value.length > 50) {
-        error = 'Username cannot exceed 20 characters.'
+        error = 'Username cannot exceed 50 characters.'
       }
     }
 

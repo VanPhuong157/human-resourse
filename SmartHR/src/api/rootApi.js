@@ -2,6 +2,7 @@ import axios from 'axios'
 
 // const baseUrl = 'http://localhost:5158'
 const baseUrl = 'https://etm-azcvdeftdeamfsdx.japaneast-01.azurewebsites.net'
+// const baseUrl = 'http://192.168.10.111:5158'
 const rootApi = axios.create({
   baseURL: `${baseUrl}/api`,
   headers: {

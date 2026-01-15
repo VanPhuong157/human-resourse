@@ -5,7 +5,7 @@ namespace BusinessObjects.DTO.User
     public class LoginDTO
     {
         [Required(ErrorMessage = "Username is required.")]
-        [MaxLength(20, ErrorMessage = "Username cannot exceed 20 characters.")]
+        [MaxLength(50, ErrorMessage = "Username cannot exceed 50 characters.")]
         [MinLength(6, ErrorMessage = "Username must be at least 6 characters long.")]
         public string Username { get; set; }
 
