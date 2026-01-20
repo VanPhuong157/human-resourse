@@ -1,11 +1,14 @@
-# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
+
+# Copy toàn bộ vào /src
 COPY . .
 
-# Sử dụng wildcard để tự tìm file csproj dù thư mục có sâu đến đâu
-RUN dotnet restore "**/Sep490_G49_Api.csproj"
-RUN dotnet publish "**/Sep490_G49_Api.csproj" -c Release -o /app/publish
+# Tìm chính xác file csproj và restore
+RUN dotnet restore "backup-portal-api/Sep490_G49_Api/Sep490_G49_Api/Sep490_G49_Api.csproj"
+
+# Publish bằng đường dẫn tương tự
+RUN dotnet publish "backup-portal-api/Sep490_G49_Api/Sep490_G49_Api/Sep490_G49_Api.csproj" -c Release -o /app/publish
 
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
