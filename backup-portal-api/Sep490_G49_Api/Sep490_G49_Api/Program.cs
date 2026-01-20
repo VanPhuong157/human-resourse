@@ -144,8 +144,6 @@ if (!Directory.Exists(uploadsPath))
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
-
 app.UseRouting();
 
 // ✅ Đặt UseCors đúng vị trí
