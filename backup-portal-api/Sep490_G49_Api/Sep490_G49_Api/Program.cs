@@ -132,9 +132,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.WebHost.UseUrls("http://*:8080");
+
 var app = builder.Build();
 
-builder.WebHost.UseUrls("http://*:8080");
 
 var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
 if (!Directory.Exists(uploadsPath))
