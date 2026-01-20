@@ -1,7 +1,6 @@
 ﻿using BusinessObjects.Files;
 using BusinessObjects.Models;
 using DataAccess.Emails;
-using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -25,8 +24,9 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Cấu hình Port PHẢI đặt trước builder.Build()
+builder.WebHost.UseUrls("http://*:8080");
 
-// Add services to the container.
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
@@ -56,33 +56,18 @@ builder.Services.AddSwaggerGen(option =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Bearer"
-                }
+                Reference = new OpenApiReference { Type=ReferenceType.SecurityScheme, Id="Bearer" }
             },
             new string[]{}
         }
     });
 });
 
-// ✅ Cấu hình CORS
-var allowedOrigins = new[]
-{
-    "http://27.71.26.109",
-    "http://sep490g49-ui.eastasia.cloudapp.azure.com",
-    "http://localhost:3000"
-};
-
+var allowedOrigins = new[] { "http://27.71.26.109", "http://sep490g49-ui.eastasia.cloudapp.azure.com", "http://localhost:3000" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultCors", policy =>
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-              .WithExposedHeaders("Content-Disposition", "filename")
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithExposedHeaders("Content-Disposition", "filename")
     );
 });
 
@@ -110,7 +95,7 @@ builder.Services.AddDbContext<SEP490_G49Context>(options =>
 });
 
 builder.Services.AddAuthentication(options =>
-{                                               
+{
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -131,60 +116,34 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.WebHost.UseUrls("http://*:8080");
-
 var app = builder.Build();
 
-
-var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseRouting();
-
-// ✅ Đặt UseCors đúng vị trí
-app.UseCors("DefaultCors");
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsPath),
-    RequestPath = "/Uploads"
-});
-
-app.MapControllers();
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapHub<NotificationHub>("/notificationHub");
-    // Other endpoints...
-});
-
-// Tự động Migrate Database khi khởi chạy
+// Tự động Migrate Database
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<SEP490_G49Context>();
-        if (context.Database.GetPendingMigrations().Any())
-        {
-            context.Database.Migrate();
-        }
+        context.Database.Migrate();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Lỗi xảy ra khi tự động cập nhật Database.");
+        logger.LogError(ex, "Lỗi Database Migration.");
     }
 }
+
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "Uploads");
+if (!Directory.Exists(uploadsPath)) Directory.CreateDirectory(uploadsPath);
+
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseCors("DefaultCors");
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(uploadsPath), RequestPath = "/Uploads" });
+app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
