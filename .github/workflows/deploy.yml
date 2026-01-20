@@ -1,0 +1,25 @@
+name: Deploy to VPS Viettel IDC
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: 27.71.26.109
+          username: root
+          password: VHScorp@2024
+          port: 22
+          script: |
+            cd ~/human-resourse
+            git pull origin main
+            docker-compose up -d --build
