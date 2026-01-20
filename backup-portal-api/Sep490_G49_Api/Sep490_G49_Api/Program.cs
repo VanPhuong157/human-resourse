@@ -71,7 +71,7 @@ builder.Services.AddSwaggerGen(option =>
 // ✅ Cấu hình CORS
 var allowedOrigins = new[]
 {
-    "http://192.168.10.111:3000",
+    "http://27.71.26.109",
     "http://sep490g49-ui.eastasia.cloudapp.azure.com",
     "http://localhost:3000"
 };
@@ -168,5 +168,24 @@ app.UseEndpoints(endpoints =>
     endpoints.MapHub<NotificationHub>("/notificationHub");
     // Other endpoints...
 });
+
+// Tự động Migrate Database khi khởi chạy
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<SEP490_G49Context>();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Lỗi xảy ra khi tự động cập nhật Database.");
+    }
+}
 
 app.Run();
