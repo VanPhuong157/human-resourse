@@ -19,7 +19,7 @@ services:
     - ASPNETCORE_URLS=http://+:80
     - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "8080:80"
+      - "8080:8080"
     depends_on:
       - db
 

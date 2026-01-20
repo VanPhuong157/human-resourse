@@ -134,7 +134,7 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-builder.WebHost.UseUrls("http://*:80");
+builder.WebHost.UseUrls("http://*:8080");
 
 var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
 if (!Directory.Exists(uploadsPath))
