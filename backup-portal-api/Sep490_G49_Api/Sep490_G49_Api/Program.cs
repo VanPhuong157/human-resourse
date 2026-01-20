@@ -37,7 +37,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSignalR();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddHangfireServer();
 builder.Services.AddHttpClient();
 
 builder.Services.AddSwaggerGen(option =>
@@ -154,7 +153,6 @@ app.UseCors("DefaultCors");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHangfireDashboard("/dashboard");
 
 app.UseStaticFiles(new StaticFileOptions
 {
