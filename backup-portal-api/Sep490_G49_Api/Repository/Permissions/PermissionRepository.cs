@@ -30,25 +30,18 @@ namespace Repository.Permissions
             {
                 query = query.Where(p => p.Name.Contains(name));
             }
-
-            // Lấy các quyền trong trang hiện tại
-            var permissions = await query
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var permissions = await query.ToListAsync();
 
             // Ánh xạ thành DTO
             var permissionDtos = _mapper.Map<IEnumerable<PermissionResponseDTO>>(permissions);
 
-            // Tính số trang tổng cộng
-            var count = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(count / (double)pageSize);
+            var count = permissions.Count;
 
             // Tạo đối tượng PaginatedList và trả về
             return new PaginatedList<PermissionResponseDTO>(
                 permissionDtos.ToList(),
-                pageIndex,
-                totalPages,
+                1,
+                1,
                 count
             );
         }
