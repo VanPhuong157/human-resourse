@@ -118,21 +118,25 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-//// Tự động Migrate Database
-//using (var scope = app.Services.CreateScope())
-//{
-//    var services = scope.ServiceProvider;
-//    try
-//    {
-//        var context = services.GetRequiredService<SEP490_G49Context>();
-//        context.Database.Migrate();
-//    }
-//    catch (Exception ex)
-//    {
-//        var logger = services.GetRequiredService<ILogger<Program>>();
-//        logger.LogError(ex, "Lỗi Database Migration.");
-//    }
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<SEP490_G49Context>();
+        // Kiểm tra xem có thể kết nối không trước khi Migrate
+        if (context.Database.CanConnect())
+        {
+            context.Database.Migrate();
+            Console.WriteLine("-----> Database Migration thành công!");
+        }
+    }
+    catch (Exception ex)
+    {
+        // Nếu lỗi (do DB chưa lên kịp), App vẫn không sập mà chỉ ghi log
+        Console.WriteLine($"-----> Migration chưa chạy được: {ex.Message}");
+    }
+}
 
 var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "Uploads");
 if (!Directory.Exists(uploadsPath)) Directory.CreateDirectory(uploadsPath);
