@@ -14,6 +14,7 @@ RUN dotnet publish "backup-portal-api/Sep490_G49_Api/Sep490_G49_Api/Sep490_G49_A
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
+ENV ASPNETCORE_URLS=http://+:8080
 COPY --from=build /app/publish .
 
 # File dll sẽ nằm trong thư mục publish
