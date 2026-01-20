@@ -17,5 +17,12 @@ jobs:
             cd ~/human-resourse
             git fetch --all
             git reset --hard origin/main
-            docker-compose down
-            docker-compose up -d --build
+            git clean -fd
+            
+            if [ -f "docker-compose.yml" ]; then
+                docker-compose down
+                docker-compose up -d --build
+            else
+                echo "LỖI: Không tìm thấy file docker-compose.yml ở thư mục $(pwd)"
+                exit 1
+            fi
