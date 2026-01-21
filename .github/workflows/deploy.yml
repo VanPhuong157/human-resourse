@@ -15,9 +15,17 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           command_timeout: 30m # Tăng thời gian chờ lên 30 phút để build thoải mái
           script: |
-            cd ~/human-resourse
+           cd ~/human-resourse
             git fetch --all
             git reset --hard origin/main
+            docker-compose down
             docker-compose up -d --build
-            docker image prune -f 
-
+            git clean -fd
+            
+            if [ -f "docker-compose.yml" ]; then
+                docker-compose down
+                docker-compose up -d --build
+            else
+                echo "LỖI: Không tìm thấy file docker-compose.yml ở thư mục $(pwd)"
+                exit 1
+            fi
