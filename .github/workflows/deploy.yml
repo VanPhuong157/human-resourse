@@ -13,13 +13,12 @@ jobs:
           host: 27.71.26.109
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
+          command_timeout: 30m # Tăng thời gian chờ lên 30 phút để build thoải mái
           script: |
             cd ~/human-resourse
             git fetch --all
             git reset --hard origin/main
-            
-            # Lệnh này cực kỳ quan trọng:
-            # 1. Nó sẽ bật sql_server lên nếu nó đang tắt.
-            # 2. Nó chỉ build lại FE/BE nếu có code mới.
-            # 3. Dữ liệu KHÔNG mất (nếu ông đã thêm Volume vào docker-compose.yml).
+            # Dọn dẹp các ảnh Docker cũ để giải phóng RAM/Ổ cứng cho VPS
+            docker image prune -f 
+            # Chạy build ngầm
             docker-compose up -d --build
