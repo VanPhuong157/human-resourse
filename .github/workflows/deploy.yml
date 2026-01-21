@@ -20,9 +20,16 @@ jobs:
             git clean -fd
             
             if [ -f "docker-compose.yml" ]; then
-                docker-compose down
-                docker-compose up -d --build
+                # Bước 1: Chỉ build lại image mới cho Backend và Frontend
+                docker-compose build backend_api frontend_ui
+                
+                # Bước 2: Restart FE/BE mà KHÔNG dừng (stop/remove) sql_server
+                # Lệnh này sẽ giữ sql_server chạy liên tục
+                docker-compose up -d --no-deps backend_api frontend_ui
+                
+                # Bước 3: Dọn dẹp các image cũ để đỡ đầy bộ nhớ server
+                docker image prune -f
             else
-                echo "LỖI: Không tìm thấy file docker-compose.yml ở thư mục $(pwd)"
+                echo "LỖI: Không tìm thấy file docker-compose.yml"
                 exit 1
             fi
