@@ -17,9 +17,6 @@ jobs:
             cd ~/human-resourse
             git fetch --all
             git reset --hard origin/main
-            
-            # Lệnh này cực kỳ quan trọng:
-            # 1. Nó sẽ bật sql_server lên nếu nó đang tắt.
-            # 2. Nó chỉ build lại FE/BE nếu có code mới.
-            # 3. Dữ liệu KHÔNG mất (nếu ông đã thêm Volume vào docker-compose.yml).
+            # Thêm lệnh dọn dẹp để tránh đầy ổ cứng VPS
+            docker image prune -f
             docker-compose up -d --build
