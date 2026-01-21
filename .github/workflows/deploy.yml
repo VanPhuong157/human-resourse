@@ -17,12 +17,9 @@ jobs:
             cd ~/human-resourse
             git fetch --all
             git reset --hard origin/main
-            git clean -fd
             
-            if [ -f "docker-compose.yml" ]; then
-                docker-compose down
-                docker-compose up -d --build
-            else
-                echo "LỖI: Không tìm thấy file docker-compose.yml ở thư mục $(pwd)"
-                exit 1
-            fi
+            # Lệnh này cực kỳ quan trọng:
+            # 1. Nó sẽ bật sql_server lên nếu nó đang tắt.
+            # 2. Nó chỉ build lại FE/BE nếu có code mới.
+            # 3. Dữ liệu KHÔNG mất (nếu ông đã thêm Volume vào docker-compose.yml).
+            docker-compose up -d --build
