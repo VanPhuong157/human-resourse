@@ -233,7 +233,6 @@ namespace Repository.Objectives
             {
                 okrUsers.AddRange(
                     dto.OwnerIds
-                       .Where(id => id != currentUserId) // tránh trùng creator
                        .Distinct()
                        .Select(id => new OkrUser { OkrId = newOkr.Id, UserId = id, Role = OkrRoles.Owner })
                 );
@@ -243,7 +242,6 @@ namespace Repository.Objectives
             {
                 okrUsers.AddRange(
                     dto.ManagerIds
-                       .Where(id => id != currentUserId) // có thể cho phép creator đồng thời là manager nếu bạn muốn
                        .Distinct()
                        .Select(id => new OkrUser { OkrId = newOkr.Id, UserId = id, Role = OkrRoles.Manager })
                 );
