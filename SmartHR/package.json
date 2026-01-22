@@ -36,6 +36,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "http-status-codes": "^2.3.0",
     "js-cookie": "^3.0.5",
+    "lucide-react": "^0.562.0",
     "pdfjs-dist": "^3.4.120",
     "perfect-scrollbar": "^1.5.5",
     "query-string": "^9.0.0",

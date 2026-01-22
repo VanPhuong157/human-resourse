@@ -1,476 +1,203 @@
-// pages/dashboard/WorkDashboard.js
-import React, { useState } from 'react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import {
-  Container,
-  Grid,
-  Paper,
-  Typography,
-  Box,
-  MenuItem,
-  Select,
-  CircularProgress,
-  Tabs,
-  Tab,
-} from '@mui/material'
-import { PieChart } from '@mui/x-charts/PieChart'
-import { useDrawingArea } from '@mui/x-charts/hooks'
-import { styled } from '@mui/material/styles'
+"use client";
 
-import useGetDepartments from '../../pages/department/requests/getDepartment'
-import useGetWorkDashboard from './requests/useGetWorkDashboard'
-import useGetUsers from './requests/useGetUsers'
+import React, { useState } from "react";
+// Icons 
+import { 
+  CheckCircle2, Clock, AlertCircle, Users, Calendar, 
+  Trophy, TrendingUp 
+} from "lucide-react";
+// Charts
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+  ResponsiveContainer, Legend
+} from "recharts";
 
-// kích thước pie
-const pieSize = { width: 340, height: 220 }
+// --- DỮ LIỆU MẪU (Sau này thay thế bằng API call) ---
+const employees = [
+  { id: 1, name: "Nguyễn Văn A", role: "Developer", completedTasks: 45, totalTasks: 50, performance: "excellent" },
+  { id: 2, name: "Trần Thị B", role: "Designer", completedTasks: 38, totalTasks: 45, performance: "good" },
+  { id: 3, name: "Lê Văn C", role: "Developer", completedTasks: 42, totalTasks: 50, performance: "excellent" },
+  { id: 4, name: "Phạm Thị D", role: "Marketing", completedTasks: 28, totalTasks: 40, performance: "good" },
+  { id: 5, name: "Hoàng Văn E", role: "Developer", completedTasks: 25, totalTasks: 50, performance: "average" },
+  { id: 6, name: "Võ Thị F", role: "Designer", completedTasks: 18, totalTasks: 45, performance: "average" },
+];
 
-const StyledText = styled('text')(() => ({
-  fill: '#111',
-  textAnchor: 'middle',
-  dominantBaseline: 'central',
-  fontSize: 20,
-}))
+const performanceData = [
+  { name: "Tuần 1", hoanthanh: 65, danglam: 15, trehan: 5 },
+  { name: "Tuần 2", hoanthanh: 72, danglam: 12, trehan: 3 },
+  { name: "Tuần 3", hoanthanh: 58, danglam: 20, trehan: 8 },
+  { name: "Tuần 4", hoanthanh: 85, danglam: 10, trehan: 2 },
+];
 
-const PieCenterLabel = ({ children }) => {
-  const { width, height, left, top } = useDrawingArea()
+// --- CÁC COMPONENT UI NỘI BỘ (Thay thế cho Shadcn/UI) ---
+
+const CustomCard = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-xl border border-gray-200 shadow-sm ${className}`}>
+    {children}
+  </div>
+);
+
+const CustomProgressBar = ({ value }) => (
+  <div className="w-full bg-gray-100 rounded-full h-2">
+    <div 
+      className="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+      style={{ width: `${value}%` }}
+    />
+  </div>
+);
+
+const CustomBadge = ({ variant, children }) => {
+  const styles = {
+    excellent: "bg-green-100 text-green-700",
+    good: "bg-blue-100 text-blue-700",
+    average: "bg-yellow-100 text-yellow-700",
+    poor: "bg-red-100 text-red-700",
+  };
   return (
-    <StyledText x={left + width / 2} y={top + height / 2}>
+    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${styles[variant] || "bg-gray-100"}`}>
       {children}
-    </StyledText>
-  )
-}
+    </span>
+  );
+};
 
-const HeaderBox = styled(Box)(() => ({
-  background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-  borderRadius: '12px',
-  padding: '24px',
-  marginBottom: '16px',
-  color: 'white',
-  boxShadow: '0 8px 24px rgba(25, 118, 210, 0.15)',
-}))
-
-const StyledPaper = styled(Paper)(() => ({
-  background: '#ffffff',
-  borderRadius: '12px',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-  border: '1px solid rgba(0, 0, 0, 0.05)',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-  },
-}))
-
-// config chung cho pie
-const pieSeriesBase = {
-  innerRadius: 70,
-  outerRadius: 80,
-  cx: 120,
-}
-
-const WorkDashboard = () => {
-  const { data: dataDepartment } = useGetDepartments()
-  const { data: userList } = useGetUsers()
-
-  const [departmentId, setDepartmentId] = useState(null)
-  const [userId, setUserId] = useState(null)
-  // 'okr' | 'policystep' — khớp đúng BE
-  const [activeType, setActiveType] = useState('okr')
-
-  const { data, isLoading } = useGetWorkDashboard({
-    departmentId,
-    userId,
-    from: null,
-    to: null,
-    type: activeType,
-  })
-
-  // API trả thẳng WorkDashboardDTO
-  const stats = data || {}
-
-  const priorityData = Object.entries(stats.byPriority || {}).map(
-    ([k, v]) => ({ label: k, value: v }),
-  )
-
-  const statusData = Object.entries(stats.byStatus || {}).map(
-    ([k, v]) => ({ label: k, value: v }),
-  )
-
-  const totalTasks = stats.totalTasks || 0
-  const users = stats.byUser || []
-
-  const tasksByDate = (stats.byDate || []).map((x) => {
-    let d = new Date(x.date)
-    if (Number.isNaN(d.getTime()) && typeof x.date === 'string') {
-      const [dd, mm, yyyy] = x.date.split('/')
-      if (dd && mm && yyyy) d = new Date(+yyyy, +mm - 1, +dd)
-    }
-    return {
-      ...x,
-      dateLabel: Number.isNaN(d.getTime())
-        ? x.date
-        : d.toLocaleDateString('vi-VN'),
-    }
-  })
-
-  const selectedUserStats = userId
-    ? users.find((u) => u.userId === userId)
-    : null
-
-  const headerTitle =
-    activeType === 'okr'
-      ? 'Work Dashboard (Daily Task)'
-      : 'Work Dashboard (Project Task)'
-
-  if (isLoading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
-        <CircularProgress />
-      </Box>
-    )
-  }
+// --- TRANG DASHBOARD CHÍNH ---
+export default function Dashboards() {
+  const [timePeriod, setTimePeriod] = useState("Tháng này");
 
   return (
-    <Container
-      maxWidth={false}
-      disableGutters
-      sx={{ pl: 3, pr: 4, pt: 3, pb: 4 }}
-    >
-      {/* HEADER */}
-      <HeaderBox
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <Box>
-          <Typography
-            variant="h4"
-            sx={{ fontWeight: 'bold', color: 'white', mb: 0.5 }}
-          >
-            {headerTitle}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: 'rgba(255,255,255,0.9)' }}
-          >
-            Theo dõi tiến độ và hiệu suất công việc của team
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          {/* chọn phòng ban */}
-          <Select
-            value={departmentId || 'All Department'}
-            onChange={(e) =>
-              setDepartmentId(
-                e.target.value === 'All Department' ? null : e.target.value,
-              )
-            }
-            variant="outlined"
-            size="small"
-            sx={{
-              minWidth: 200,
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              borderRadius: '8px',
-              '& .MuiOutlinedInput-root': {
-                color: '#1976d2',
-              },
-            }}
-          >
-            <MenuItem value="All Department">Tất cả Phòng Ban</MenuItem>
-            {dataDepartment?.data?.items.map(({ id, name }) => (
-              <MenuItem key={id} value={id}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* chọn nhân viên */}
-          <Select
-            value={userId || 'All Users'}
-            onChange={(e) =>
-              setUserId(e.target.value === 'All Users' ? null : e.target.value)
-            }
-            variant="outlined"
-            size="small"
-            sx={{
-              minWidth: 220,
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              borderRadius: '8px',
-              '& .MuiOutlinedInput-root': {
-                color: '#1976d2',
-              },
-            }}
-          >
-            <MenuItem value="All Users">Tất cả Nhân Viên</MenuItem>
-            {(userList || []).map(({ id, fullName }) => (
-              <MenuItem key={id} value={id}>
-                {fullName}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
-      </HeaderBox>
-
-      {/* TABS OKR / POLICYSTEP */}
-      <Box sx={{ mb: 3, borderBottom: '1px solid #e0e0e0' }}>
-        <Tabs
-          value={activeType}
-          onChange={(_, v) => setActiveType(v)}
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          <Tab label="Daily Task Dashboard" value="okr" />
-          <Tab label="Project Task Dashboard" value="policystep" />
-        </Tabs>
-      </Box>
-
-      {/* NỘI DUNG DASHBOARD */}
-      <Grid container spacing={3}>
-        {/* Tổng công việc + hiệu suất người được chọn */}
-        <Grid item xs={12} sm={6} md={3}>
-          <StyledPaper sx={{ p: 3, textAlign: 'center' }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#666',
-                mb: 1,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                fontSize: '12px',
-                fontWeight: '600',
-              }}
+    <div className="min-h-screen bg-[#f8fafc] pb-12 text-slate-900">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-8 py-6 mb-8 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight">Dashboard Nhân Sự</h1>
+            <p className="text-sm text-slate-500 font-medium">Theo dõi hiệu suất & tiến độ dự án</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <select 
+              className="bg-white border border-gray-300 text-sm rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+              value={timePeriod}
+              onChange={(e) => setTimePeriod(e.target.value)}
             >
-              Tổng Công Việc
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #1976d2, #1565c0)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mt: 1,
-              }}
-            >
-              {totalTasks}
-            </Typography>
+              <option>Tuần này</option>
+              <option>Tháng này</option>
+              <option>Quý này</option>
+            </select>
+            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all">
+              <Calendar className="w-4 h-4" /> Xuất báo cáo
+            </button>
+          </div>
+        </div>
+      </header>
 
-            {selectedUserStats && (
-              <Box sx={{ mt: 2, textAlign: 'left', fontSize: 13 }}>
-                <Typography sx={{ fontWeight: 600 }}>
-                  {selectedUserStats.fullName}
-                </Typography>
-                <Typography>
-                  Tổng task: <b>{selectedUserStats.totalTasks}</b>
-                </Typography>
-                <Typography>
-                  Hoàn thành: <b>{selectedUserStats.completedTasks}</b>
-                </Typography>
-                <Typography>
-                  On-time:{' '}
-                  <b>{(selectedUserStats.onTimeRate * 100).toFixed(1)}%</b>
-                </Typography>
-                <Typography>
-                  Điểm hiệu suất:{' '}
-                  <b>{(selectedUserStats.finalScore * 100).toFixed(1)}%</b>
-                </Typography>
-              </Box>
-            )}
-          </StyledPaper>
-        </Grid>
+      <main className="max-w-7xl mx-auto px-8 space-y-8">
+        {/* 1. Hàng Thống Kê Tổng Quan */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { label: "Hoàn thành", val: "280", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
+            { label: "Đang làm", val: "64", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
+            { label: "Trễ hạn", val: "12", color: "text-red-600", bg: "bg-red-50", icon: AlertCircle },
+            { label: "Nhân viên", val: "24", color: "text-purple-600", bg: "bg-purple-50", icon: Users },
+          ].map((stat, i) => (
+            <CustomCard key={i} className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+                  <p className="text-3xl font-bold mt-1">{stat.val}</p>
+                </div>
+                <div className={`p-3 rounded-xl ${stat.bg}`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+              </div>
+            </CustomCard>
+          ))}
+        </div>
 
-        {/* Mức độ ưu tiên */}
-        <Grid item xs={12} sm={6} md={4.5}>
-          <StyledPaper sx={{ p: 3, overflow: 'hidden' }}>
-            <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
-              Mức Độ Ưu Tiên
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Box sx={{ width: pieSize.width, mx: 'auto' }}>
-                <PieChart
-                  series={[
-                    {
-                      ...pieSeriesBase,
-                      data: priorityData,
-                    },
-                  ]}
-                  {...pieSize}
-                  slotProps={{
-                    legend: {
-                      direction: 'column',
-                      position: { vertical: 'middle', horizontal: 'right' },
-                    },
-                  }}
-                >
-                  <PieCenterLabel>{totalTasks}</PieCenterLabel>
-                </PieChart>
-              </Box>
-            </Box>
-          </StyledPaper>
-        </Grid>
+        {/* 2. Biểu đồ & Nhân viên nổi bật */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <CustomCard className="p-6 lg:col-span-2">
+            <h3 className="text-lg font-bold mb-6">Tiến độ công việc</h3>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip cursor={{fill: '#f8fafc'}} />
+                  <Legend iconType="circle" />
+                  <Bar dataKey="hoanthanh" fill="#10b981" name="Xong" radius={[4, 4, 0, 0]} barSize={30} />
+                  <Bar dataKey="danglam" fill="#3b82f6" name="Đang xử lý" radius={[4, 4, 0, 0]} barSize={30} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CustomCard>
 
-        {/* Trạng thái công việc */}
-        <Grid item xs={12} sm={12} md={4.5}>
-          <StyledPaper sx={{ p: 3, overflow: 'hidden' }}>
-            <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
-              Trạng Thái Công Việc
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Box sx={{ width: pieSize.width, mx: 'auto' }}>
-                <PieChart
-                  series={[
-                    {
-                      ...pieSeriesBase,
-                      data: statusData,
-                    },
-                  ]}
-                  {...pieSize}
-                  slotProps={{
-                    legend: {
-                      direction: 'column',
-                      position: { vertical: 'middle', horizontal: 'right' },
-                    },
-                  }}
-                >
-                  <PieCenterLabel>{totalTasks}</PieCenterLabel>
-                </PieChart>
-              </Box>
-            </Box>
-          </StyledPaper>
-        </Grid>
+          <CustomCard className="p-6">
+            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-500" /> Ngôi sao tháng
+            </h3>
+            <div className="space-y-4">
+              {employees.slice(0, 3).map((emp) => (
+                <div key={emp.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-sm">{emp.name}</span>
+                    <span className="text-xs text-slate-500">{emp.role}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-black text-blue-600">{emp.completedTasks}</span>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Tasks</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CustomCard>
+        </div>
 
-        {/* Công việc theo thành viên */}
-        <Grid item xs={12} md={6}>
-          <StyledPaper sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
-              Công Việc Theo Thành Viên
-            </Typography>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={users}
-                layout="vertical"
-                barCategoryGap="20%"
-                margin={{ left: 120, right: 20, top: 10, bottom: 10 }}
-              >
-                <XAxis type="number" stroke="#111111ff" />
-                <YAxis
-                  type="category"
-                  dataKey="fullName"
-                  width={110}
-                  tick={{ fontSize: 16 }}
-                  stroke="#161616ff"
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#f8f6f6ff',
-                    border: '1px solid #f7f3f3ff',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar
-                  dataKey="totalTasks"
-                  name="Tổng"
-                  fill="#1976d2"
-                  radius={[0, 8, 8, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
+        {/* 3. Danh sách nhân viên */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-extrabold uppercase tracking-wider">Danh sách nhân sự</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {employees.map((emp) => {
+              const rate = Math.round((emp.completedTasks / emp.totalTasks) * 100);
+              const performanceLabels = { 
+                excellent: "Xuất sắc", 
+                good: "Tốt", 
+                average: "Trung bình",
+                poor: "Cần cố gắng"
+              };
 
-        {/* Công việc theo thời gian */}
-        <Grid item xs={12} md={6}>
-          <StyledPaper sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
-              Công Việc Theo Thời Gian
-            </Typography>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={tasksByDate}
-                margin={{ left: 0, right: 0, top: 10, bottom: 10 }}
-              >
-                <XAxis
-                  dataKey="dateLabel"
-                  stroke="#0e0d0dff"
-                  tick={{ fontSize: 14 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis stroke="#0f0f0fff" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#fff',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Bar
-                  dataKey="count"
-                  name="Số Lượng"
-                  fill="#549fd1ff"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
-
-        {/* Điểm hiệu suất */}
-        <Grid item xs={12}>
-          <StyledPaper sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
-              Điểm Hiệu Suất Làm Việc
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={users}
-                margin={{ left: 0, right: 0, top: 10, bottom: 10 }}
-              >
-                <XAxis
-                  dataKey="fullName"
-                  stroke="#181717ff"
-                  tick={{ fontSize: 18 }}
-                  textAnchor="center"
-                  height={70}
-                />
-                <YAxis domain={[0, 1]} stroke="#141414ff" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0e0d0dff',
-                    border: '1px solid #080808ff',
-                    borderRadius: '8px',
-                  }}
-                  formatter={(value) => (value * 100).toFixed(1) + '%'}
-                />
-                <Bar
-                  dataKey="finalScore"
-                  name="Điểm"
-                  fill="#f53c35ff"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </StyledPaper>
-        </Grid>
-      </Grid>
-    </Container>
-  )
+              return (
+                <CustomCard key={emp.id} className="p-6 hover:border-blue-300 transition-all group">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h4 className="font-bold group-hover:text-blue-600 transition-colors">{emp.name}</h4>
+                      <p className="text-xs font-medium text-slate-500 italic mt-0.5">{emp.role}</p>
+                    </div>
+                    <CustomBadge variant={emp.performance}>
+                      {performanceLabels[emp.performance]}
+                    </CustomBadge>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-slate-400 uppercase">Hiệu suất</span>
+                      <span>{rate}%</span>
+                    </div>
+                    <CustomProgressBar value={rate} />
+                    <div className="flex justify-between items-center pt-2">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase">Hoàn thành</div>
+                      <div className="text-sm font-black text-slate-700">{emp.completedTasks} / {emp.totalTasks}</div>
+                    </div>
+                  </div>
+                </CustomCard>
+              );
+            })}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
-
-export default WorkDashboard
